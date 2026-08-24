@@ -14,16 +14,8 @@ app.use(express.json())
 app.use(express.urlencoded({extended:true}))
 app.use(cookieParser())
 
-// app.get("/api/v1/health", (req, res) => {
-//   res.status(200).json({
-//     success: true,
-//     message: "APIPilot API is healthy",
-//   });
-// });
-
 app.use('/api/v1',apiRouter)
 
-// Global error handler (must be after all routes)
 app.use(errorHandler)
 
 export default app
