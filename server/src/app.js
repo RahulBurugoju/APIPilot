@@ -2,6 +2,7 @@ import express from "express"
 import cors from "cors"
 import cookieParser from "cookie-parser"
 import apiRouter from './routes/index.js'
+import errorHandler from './middlewares/error.middleware.js'
  const app = express()
 
 app.use(cors({
@@ -22,4 +23,7 @@ app.use(cookieParser())
 
 app.use('/api/v1',apiRouter)
 
-export  default app 
+// Global error handler (must be after all routes)
+app.use(errorHandler)
+
+export default app

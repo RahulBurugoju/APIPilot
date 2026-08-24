@@ -130,6 +130,7 @@ export const logoutUser = async (userId) => {
   await user.save({ validateBeforeSave: false });
 
   return {
+    success:true,
     message: "User logged out successfully",
   };
 };
