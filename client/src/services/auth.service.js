@@ -16,23 +16,25 @@ const login = async(payload)=>{
 const logout = async()=>{
     const response = await api.post("/auth/logout");
 
-    return response.data;
+    return response.success;
 }
 
-const getme = async()=>{
+const getCurrentUser = async()=>{
     const response = await api.get("/auth/me")
     return response.data;
 }
 
-const refreshTokens = async()=>{
+const refreshAccessToken = async()=>{
     const response = await api.post("/auth/refresh-token")
     return response.data;
 }
 
-export const authService = {
+const authService = {
     register,
     login,
     logout,
-    getme,
-    refreshTokens
+    getCurrentUser,
+    refreshAccessToken
 }
+
+export default authService
