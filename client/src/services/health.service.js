@@ -1,4 +1,4 @@
-import api from './axios.js'
+import api from '../lib/axios.js'
 
 const healthService = {
     check:async()=>{

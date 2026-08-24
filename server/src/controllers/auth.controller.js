@@ -68,7 +68,7 @@ export const logoutController = asyncHandler(async(req,res)=>{
         .status(200)
       .clearCookie("accessToken",clearAccessTokenCookieOptions)
         .clearCookie("refreshToken",clearRefreshTokenCookieOptions)
-        .json(new ApiResponse(200,{},"User logged out successfully"))   
+        .json(new ApiResponse(200,{success:true},"User logged out successfully"))   
 
 })
 
