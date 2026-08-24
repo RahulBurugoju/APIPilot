@@ -7,7 +7,13 @@ import {
 } from "../services/auth.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { refreshTokenCookieOptions, clearRefreshTokenCookieOptions } from "../config/cookie.config.js";
+import {
+  accessTokenCookieOptions,
+  refreshTokenCookieOptions,
+  clearAccessTokenCookieOptions,
+  clearRefreshTokenCookieOptions,
+} from "../config/cookie.config.js";
+import { ApiError } from "../utils/ApiError.js";
 
 export const registerController = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
@@ -15,16 +21,9 @@ export const registerController = asyncHandler(async (req, res) => {
   const dbResponse = await registerUser({ name, email, password });
   const { user, accessToken, refreshToken } = dbResponse;
 
-  const cookieOptions = {
-    httpOnly: true,
-    secure: true,
-    sameSite: "strict",
-    maxAge: 60 * 60 * 24 * 1000,
-  };
-  // if CORS error because of cookies in production send both tokens in response body instead of setting cookies
   return res
-    .status(200)
-    .cookie("accessToken", accessToken, cookieOptions)
+    .status(201)
+    .cookie("accessToken", accessToken, accessTokenCookieOptions)
     .cookie("refreshToken", refreshToken, refreshTokenCookieOptions)
     .json(new ApiResponse(200, user, "User registered successfully"));
 });
@@ -36,16 +35,9 @@ export const loginController = asyncHandler(async (req, res) => {
 
   const { user, accessToken, refreshToken } = dbResponse;
 
-  const cookieOptions = {
-    httpOnly: true,
-    secure: true,
-    sameSite: "strict",
-    maxAge: 60 * 60 * 24 * 1000,
-  };
-  // if CORS error because of cookies in production send both tokens in response body instead of setting cookies
   return res
     .status(200)
-    .cookie("accessToken", accessToken, cookieOptions)
+    .cookie("accessToken", accessToken, accessTokenCookieOptions)
     .cookie("refreshToken", refreshToken, refreshTokenCookieOptions)
     .json(new ApiResponse(200, user, "User login successfully"));
 });
@@ -74,7 +66,7 @@ export const logoutController = asyncHandler(async(req,res)=>{
 
     return res
         .status(200)
-        .clearCookie("accessToken",clearRefreshTokenCookieOptions)
+      .clearCookie("accessToken",clearAccessTokenCookieOptions)
         .clearCookie("refreshToken",clearRefreshTokenCookieOptions)
         .json(new ApiResponse(200,{},"User logged out successfully"))   
 
@@ -87,16 +79,9 @@ export const refreshTokensController = asyncHandler(async(req,res)=>{
 
     const {accessToken,refreshToken:newRefreshToken} = dbResponse
     
-    const cookieOptions = {
-    httpOnly: true,
-    secure: true,
-    sameSite: "strict",
-    maxAge: 60 * 60 * 24 * 1000,
-  };
-
   return res
     .status(200)
-    .cookie("accessToken", accessToken, cookieOptions)
+    .cookie("accessToken", accessToken, accessTokenCookieOptions)
     .cookie("refreshToken", newRefreshToken, refreshTokenCookieOptions)
     .json(new ApiResponse(200, {}, "Tokens refreshed successfully"))
     

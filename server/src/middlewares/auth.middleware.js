@@ -8,13 +8,13 @@ export const authenticate = asyncHandler(async(req,res,next)=>{
     const accessToken = req.cookies.accessToken || (authHeader?.startsWith("Bearer ") ? authHeader.split(" ")[1] : null);   
     
     if(!accessToken){
-        throw new ApiError(401,"Unauthorized request")
+        throw new ApiError(401,"Unauthorized request : accesstoken required")
     }
 
     const decodedToken = await verifyAccesstoken(accessToken)
 
     if(decodedToken.type !== "access"){
-        throw new ApiError(401,"Invalid access token")
+        throw new ApiError(401,"Invalid access token : token type is not access")
     }
 
     const user = await User.findById(decodedToken?.userId).select("+refreshToken")
