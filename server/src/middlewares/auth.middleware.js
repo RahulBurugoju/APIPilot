@@ -1,0 +1,32 @@
+import { verifyAccesstoken } from "../utils/auth.util.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiError } from "../utils/ApiError.js";
+import User from "../models/user.model.js";
+
+export const authenticate = asyncHandler(async(req,res,next)=>{
+    const authHeader = req.headers.authorization;
+    const accessToken = req.cookies.accessToken || (authHeader?.startsWith("Bearer ") ? authHeader.split(" ")[1] : null);   
+    
+    if(!accessToken){
+        throw new ApiError(401,"Unauthorized request")
+    }
+
+    const decodedToken = await verifyAccesstoken(accessToken)
+
+    if(decodedToken.type !== "access"){
+        throw new ApiError(401,"Invalid access token")
+    }
+
+    const user = await User.findById(decodedToken?.userId).select("+refreshToken")
+    
+    if(!user || !user.refreshToken ){
+        throw new ApiError(401,"Invalid access token")
+    }
+
+    req.user = {
+        Id:user._id,
+        name:user.name,
+        email:user.email,
+    }
+    next()
+})
