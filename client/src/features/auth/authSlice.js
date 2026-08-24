@@ -15,8 +15,8 @@ const authSlice = createSlice({
     initialState,
     reducers:{},
     extraReducers:(builder)=>{
-        builder
-            .addCase()
+        // builder
+        //     .addCase()
     }
 })
 
