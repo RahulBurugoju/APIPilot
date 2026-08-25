@@ -9,24 +9,24 @@ function DashboardPage() {
   const dispatch = useDispatch();
 
   return (
-    <div className="min-h-screen bg-[#FFFFFF] dark:bg-[#0B0B0D] text-[#1D1D1F] dark:text-[#F5F5F7] font-sans antialiased transition-colors duration-200">
+    <div className="min-h-screen bg-[#FAF3E1] dark:bg-[#0B0B0D] text-[#222222] dark:text-[#F5F5F7] font-sans antialiased transition-colors duration-200">
       {/* Top Bar */}
-      <header className="border-b border-[#E5E5E7] dark:border-[#1F1F23] bg-[#FFFFFF]/80 dark:bg-[#141416]/50 backdrop-blur-md transition-colors duration-200">
+      <header className="border-b border-[#E6D2A5] dark:border-[#1F1F23] bg-[#FAF3E1]/90 dark:bg-[#141416]/50 backdrop-blur-md transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-sm font-semibold tracking-tight text-[#1D1D1F] dark:text-[#F5F5F7]">
+            <span className="text-sm font-semibold tracking-tight text-[#222222] dark:text-[#F5F5F7]">
               APIpilot Workspace
             </span>
           </div>
 
           <div className="flex items-center gap-3 text-xs">
-            <span className="text-[#6E6E73] dark:text-[#A1A1A6] hidden sm:inline">
-              Signed in as <span className="text-[#1D1D1F] dark:text-[#F5F5F7] font-medium">{user?.email || user?.name || "User"}</span>
+            <span className="text-[#5C5C5C] dark:text-[#A1A1A6] hidden sm:inline">
+              Signed in as <span className="text-[#222222] dark:text-[#F5F5F7] font-semibold">{user?.email || user?.name || "User"}</span>
             </span>
             <ThemeToggle />
             <button
               onClick={() => dispatch(logoutUser())}
-              className="px-3 py-1.5 rounded-md bg-[#F5F5F7] dark:bg-[#1C1C1F] hover:bg-[#E5E5E7] dark:hover:bg-[#2C2C2E] text-[#6E6E73] dark:text-[#A1A1A6] hover:text-[#1D1D1F] dark:hover:text-[#F5F5F7] border border-[#E5E5E7] dark:border-[#2C2C2E] transition-colors cursor-pointer"
+              className="px-3 py-1.5 rounded-md bg-[#FFFFFF] dark:bg-[#1C1C1F] hover:bg-[#F5E7C6] dark:hover:bg-[#2C2C2E] text-[#222222] dark:text-[#A1A1A6] hover:text-[#FF6D1F] dark:hover:text-[#F5F5F7] border border-[#E6D2A5] dark:border-[#2C2C2E] transition-colors cursor-pointer shadow-xs"
             >
               Sign out
             </button>
@@ -37,10 +37,10 @@ function DashboardPage() {
       {/* Main Content Area */}
       <main className="max-w-7xl mx-auto px-6 py-10">
         <div className="mb-8">
-          <h1 className="text-xl font-semibold tracking-tight text-[#1D1D1F] dark:text-[#F5F5F7]">
+          <h1 className="text-xl font-semibold tracking-tight text-[#222222] dark:text-[#F5F5F7]">
             Projects
           </h1>
-          <p className="text-xs text-[#6E6E73] dark:text-[#A1A1A6] mt-1">
+          <p className="text-xs text-[#5C5C5C] dark:text-[#A1A1A6] mt-1">
             Manage your API collections, environments, and mock services.
           </p>
         </div>
