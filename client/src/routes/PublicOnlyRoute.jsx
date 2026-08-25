@@ -6,7 +6,7 @@ function PublicOnlyRoute() {
   const { isAuthenticated } = useSelector((state) => state.auth);
 
   if (isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   } else {
     return <Outlet />;
   }

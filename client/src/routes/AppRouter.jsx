@@ -2,22 +2,33 @@ import React from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 import PublicOnlyRoute from "./PublicOnlyRoute";
+import LandingPage from "../pages/LandingPage";
+import LoginPage from "../pages/LoginPage";
+import RegisterPage from "../pages/RegisterPage";
+import DashboardPage from "../pages/DashboardPage";
 
 function AppRouter() {
   const router = createBrowserRouter([
     // ----------------------------------------------------
     // Public-Only Routes (Guests Only: redirect to "/" if logged in)
     // ----------------------------------------------------
+    // ----------------------------------------------------
+    // Public-Only Routes (Guests Only)
+    // ----------------------------------------------------
     {
       element: <PublicOnlyRoute />,
       children: [
         {
+          path: "/",
+          element: <LandingPage />,
+        },
+        {
           path: "/login",
-          element: <div>Login Page (Placeholder)</div>,
+          element: <LoginPage/>,
         },
         {
           path: "/register",
-          element: <div>Register Page (Placeholder)</div>,
+          element: <RegisterPage/>,
         },
       ],
     },
@@ -29,8 +40,8 @@ function AppRouter() {
       element: <ProtectedRoute />,
       children: [
         {
-          path: "/",
-          element: <div>APIPilot Dashboard (Protected Placeholder)</div>,
+          path: "/dashboard",
+          element: <DashboardPage/>,
         },
         {
           path: "/profile",
