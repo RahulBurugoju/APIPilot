@@ -6,8 +6,14 @@ const createProject = async (projectData) => {
   return response.data;
 };
 
+const getProjects = async ()=>{
+  const response = await api("/projects")
+  return response.data
+}
+
 const projectServices = {
-    createProject
+    createProject,
+    getProjects
 }
 
 export default projectServices

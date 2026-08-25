@@ -23,7 +23,7 @@ const projectSlice = createSlice({
     builder
       .addCase(projectThunks.createProject.pending, (state) => {
         state.loading = true;
-        state.error=null;
+        state.error = null;
       })
       .addCase(projectThunks.createProject.fulfilled, (state, action) => {
         state.loading = false;
@@ -33,6 +33,19 @@ const projectSlice = createSlice({
       .addCase(projectThunks.createProject.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(projectThunks.getProjects.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(projectThunks.getProjects.fulfilled, (state, action) => {
+        state.loading = false;
+        state.projects = action.payload?.data?.projects;
+      })
+      .addCase(projectThunks.getProjects.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+        state.projects = null;
       });
   },
 });
