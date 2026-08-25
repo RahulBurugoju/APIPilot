@@ -3,10 +3,17 @@ import { useDispatch, useSelector } from 'react-redux'
 import { logoutUser } from '../features/auth/auth.thunk.js'
 import CreateProjectForm from '../components/projects/CreateProjectForm.jsx'
 import ThemeToggle from '../components/common/ThemeToggle.jsx'
+import { useEffect } from 'react'
+import projectThunks from '../features/project/project.thunk.js'
+import ProjectList from '../components/projects/ProjectList.jsx'
 
 function DashboardPage() {
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
+  
+  useEffect(()=>{
+    dispatch(projectThunks.getProjects());
+  },[dispatch])
 
   return (
     <div className="min-h-screen bg-[#FAF3E1] dark:bg-[#0B0B0D] text-[#222222] dark:text-[#F5F5F7] font-sans antialiased transition-colors duration-200">
@@ -46,6 +53,8 @@ function DashboardPage() {
         </div>
 
         <CreateProjectForm />
+
+        <ProjectList/>
       </main>
     </div>
   );
