@@ -19,7 +19,12 @@ const initialState = {
 const authSlice = createSlice({
   name: "auth",
   initialState,
-  reducers: {},
+  reducers: {
+    clearAuthError: (state) => {
+      state.error = null;
+    },
+    resetAuthState: () => initialState,
+  },
   extraReducers: (builder) => {
     builder
       .addCase(registerUser.pending, (state, action) => {
@@ -28,8 +33,8 @@ const authSlice = createSlice({
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload?.data.user;
-        state.accessToken = action.payload?.data.accessToken;
+        state.user = action.payload?.data?.user;
+        state.accessToken = action.payload?.data?.accessToken;
         state.error = null;
         state.isAuthenticated = true;
         state.initialized = true;
@@ -73,6 +78,9 @@ const authSlice = createSlice({
       .addCase(logoutUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+        state.user = null;
+        state.isAuthenticated = false;
+        state.accessToken = null;
         state.initialized = true;
       })
       .addCase(getCurrentUserThunk.pending, (state, action) => {
@@ -115,6 +123,6 @@ const authSlice = createSlice({
   },
 });
 
-export const {} = authSlice.actions;
+export const { clearAuthError, resetAuthState } = authSlice.actions;
 
 export default authSlice.reducer;
