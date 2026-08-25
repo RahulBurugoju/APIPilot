@@ -16,7 +16,7 @@ app.use(express.urlencoded({extended:true}))
 app.use(cookieParser())
 
 app.use('/api/v1',apiRouter)
-app.use('/api/v1/project',projectRouter)
+app.use('/api/v1/projects',projectRouter)
 
 app.use(errorHandler)
 
