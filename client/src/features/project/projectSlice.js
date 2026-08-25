@@ -15,6 +15,9 @@ const projectSlice = createSlice({
     clearProjectError: (state) => {
       state.error = null;
     },
+    resetCurrentProject: (state) => {
+      state.currentProject = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -34,6 +37,6 @@ const projectSlice = createSlice({
   },
 });
 
-export const {clearProjectError} = projectSlice.actions;
+export const { clearProjectError, resetCurrentProject } = projectSlice.actions;
 
 export default projectSlice.reducer;
