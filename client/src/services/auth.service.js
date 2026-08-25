@@ -16,7 +16,7 @@ const login = async(payload)=>{
 const logout = async()=>{
     const response = await api.post("/auth/logout");
 
-    return response.success;
+    return response.data;
 }
 
 const getCurrentUser = async()=>{

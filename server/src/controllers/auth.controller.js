@@ -25,7 +25,7 @@ export const registerController = asyncHandler(async (req, res) => {
     .status(201)
     .cookie("accessToken", accessToken, accessTokenCookieOptions)
     .cookie("refreshToken", refreshToken, refreshTokenCookieOptions)
-    .json(new ApiResponse(200, user, "User registered successfully"));
+    .json(new ApiResponse(200, {user,accessToken}, "User registered successfully"));
 });
 
 export const loginController = asyncHandler(async (req, res) => {
@@ -39,7 +39,7 @@ export const loginController = asyncHandler(async (req, res) => {
     .status(200)
     .cookie("accessToken", accessToken, accessTokenCookieOptions)
     .cookie("refreshToken", refreshToken, refreshTokenCookieOptions)
-    .json(new ApiResponse(200, user, "User login successfully"));
+    .json(new ApiResponse(200, {user,accessToken}, "User login successfully"));
 });
 
 export const getMeController = asyncHandler(async(req,res)=>{
@@ -83,6 +83,6 @@ export const refreshTokensController = asyncHandler(async(req,res)=>{
     .status(200)
     .cookie("accessToken", accessToken, accessTokenCookieOptions)
     .cookie("refreshToken", newRefreshToken, refreshTokenCookieOptions)
-    .json(new ApiResponse(200, {}, "Tokens refreshed successfully"))
+    .json(new ApiResponse(200, {accessToken}, "Tokens refreshed successfully"))
     
 })
