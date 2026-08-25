@@ -18,3 +18,13 @@ export const createProject = asyncHandler(async(req,res)=>{
     )
 })
 
+export const getUserProjects = asyncHandler(async(req,res)=>{
+    const userId = req.user?.Id;
+
+    const projects = await projectService.getUserProjects({userId});
+
+
+    return res.status(200).json(
+        new ApiResponse(200, { projects }, "Projects fetched successfully")
+    )
+})
