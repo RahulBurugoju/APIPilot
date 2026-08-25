@@ -56,6 +56,8 @@ function LoginPage() {
     return errors;
   };
 
+  
+
   const handleOnSubmit = async (e) => {
     e.preventDefault();
     const errors = validate();
