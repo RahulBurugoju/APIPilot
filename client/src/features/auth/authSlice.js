@@ -5,7 +5,9 @@ import {
   logoutUser,
   refreshTokens,
   getCurrentUserThunk,
+  initializeAuth,
 } from "./auth.thunk.js";
+import { setAccessToken, clearAccessToken } from "../../lib/axios.js";
 
 const initialState = {
   user: null,
@@ -28,7 +30,7 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(registerUser.pending, (state, action) => {
+      .addCase(registerUser.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
@@ -39,6 +41,7 @@ const authSlice = createSlice({
         state.error = null;
         state.isAuthenticated = true;
         state.initialized = true;
+        setAccessToken(action.payload?.data?.accessToken);
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
@@ -46,7 +49,7 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.initialized = true;
       })
-      .addCase(loginUser.pending, (state, action) => {
+      .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
@@ -57,6 +60,7 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.error = null;
         state.initialized = true;
+        setAccessToken(action.payload?.data?.accessToken);
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
@@ -64,17 +68,18 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.initialized = true;
       })
-      .addCase(logoutUser.pending, (state, action) => {
+      .addCase(logoutUser.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(logoutUser.fulfilled, (state, action) => {
+      .addCase(logoutUser.fulfilled, (state) => {
         state.loading = false;
         state.user = null;
         state.isAuthenticated = false;
         state.accessToken = null;
         state.error = null;
         state.initialized = true;
+        clearAccessToken();
       })
       .addCase(logoutUser.rejected, (state, action) => {
         state.loading = false;
@@ -83,8 +88,9 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.accessToken = null;
         state.initialized = true;
+        clearAccessToken();
       })
-      .addCase(getCurrentUserThunk.pending, (state, action) => {
+      .addCase(getCurrentUserThunk.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
@@ -102,7 +108,7 @@ const authSlice = createSlice({
         state.user = null;
         state.initialized = true;
       })
-      .addCase(refreshTokens.pending, (state, action) => {
+      .addCase(refreshTokens.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
@@ -112,6 +118,7 @@ const authSlice = createSlice({
         state.accessToken = action.payload?.data?.accessToken;
         state.isAuthenticated = true;
         state.initialized = true;
+        setAccessToken(action.payload?.data?.accessToken);
       })
       .addCase(refreshTokens.rejected, (state, action) => {
         state.loading = false;
@@ -120,6 +127,25 @@ const authSlice = createSlice({
         state.user = null;
         state.accessToken = null;
         state.initialized = true;
+        clearAccessToken();
+      })
+      .addCase(initializeAuth.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.initialized = false;
+      })
+      .addCase(initializeAuth.fulfilled, (state) => {
+        state.loading = false;
+        state.initialized = true;
+      })
+      .addCase(initializeAuth.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+        state.initialized = true;
+        state.user = null;
+        state.accessToken = null;
+        state.isAuthenticated = false;
+        clearAccessToken();
       });
   },
 });
