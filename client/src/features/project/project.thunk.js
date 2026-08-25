@@ -8,7 +8,8 @@ const createProject = createAsyncThunk(
       const data = await projectServices.createProject(projectData);
       return data;
     } catch (error) {
-      return rejectWithValue(error.message || "Something went wrong while creating project");
+      const msg = error?.response?.data?.message || error?.message || "Something went wrong while creating project";
+      return rejectWithValue(msg);
     }
   },
 );
