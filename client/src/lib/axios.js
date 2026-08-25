@@ -19,6 +19,8 @@ export const clearAccessToken = () => {
   accessToken = null;
 };
 
+// Handles token refresh by ensuring only one refresh request runs at a
+// time and shares the new access token with concurrent requests.
 const refreshAccessToken = async () => {
   if (!refreshPromise) {
     refreshPromise = api
@@ -38,4 +40,50 @@ const refreshAccessToken = async () => {
   }
   return refreshPromise;
 };
+
+// request interpectors
+
+api.interceptors.request.use(
+  (config) => {
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error),
+);
+
+// response Interpector
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response?.status !== 401 || originalRequest?._retry) {
+      return Promise.reject(error);
+    }
+    // Loop Prevention on /auth/refresh-token
+    if (
+      originalRequest.url?.includes("/auth/refresh-token") ||
+      originalRequest?.url?.includes("/auth/login")
+    ) {
+      clearAccessToken();
+      return Promise.reject(error);
+    }
+
+    originalRequest._retry = true;
+
+    try {
+      const newToken = await refreshAccessToken();
+
+      originalRequest.headers.Authorization = `Bearer ${newToken}`;
+
+      return api(originalRequest);
+    } catch (refreshError) {
+      clearAccessToken();
+      return Promise.reject(refreshError);
+    }
+  },
+);
 export default api;
