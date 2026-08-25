@@ -27,8 +27,11 @@ const projectSlice = createSlice({
       })
       .addCase(projectThunks.createProject.fulfilled, (state, action) => {
         state.loading = false;
-        state.currentProject = action.payload?.data?.project;
-        state.projects.push(action.payload?.data?.project);
+        const newProj = action.payload?.data?.project;
+        state.currentProject = newProj;
+        if (newProj) {
+          state.projects = [newProj, ...(state.projects || [])];
+        }
       })
       .addCase(projectThunks.createProject.rejected, (state, action) => {
         state.loading = false;
