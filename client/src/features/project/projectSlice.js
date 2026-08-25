@@ -40,12 +40,12 @@ const projectSlice = createSlice({
       })
       .addCase(projectThunks.getProjects.fulfilled, (state, action) => {
         state.loading = false;
-        state.projects = action.payload?.data?.projects;
+        state.projects = action.payload?.data?.projects || [];
       })
       .addCase(projectThunks.getProjects.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-        state.projects = null;
+        state.projects = state.projects || [];
       });
   },
 });

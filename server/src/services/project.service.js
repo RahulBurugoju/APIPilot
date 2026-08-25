@@ -52,10 +52,7 @@ const getUserProjects = async ({ userId }) => {
     updatedAt: -1,
   });
 
-  if (projects.length === 0) {
-    throw new ApiError(404, "projects not found");
-  }
-  return projects;
+  return projects || [];
 };
 
 export default {

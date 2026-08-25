@@ -42,8 +42,8 @@ function DashboardPage() {
       </header>
 
       {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto px-6 py-10">
-        <div className="mb-8">
+      <main className="max-w-7xl mx-auto px-6 py-10 space-y-8">
+        <div>
           <h1 className="text-xl font-semibold tracking-tight text-[#222222] dark:text-[#F5F5F7]">
             Projects
           </h1>
@@ -52,9 +52,15 @@ function DashboardPage() {
           </p>
         </div>
 
-        <CreateProjectForm />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div className="lg:col-span-4">
+            <CreateProjectForm />
+          </div>
 
-        <ProjectList/>
+          <div className="lg:col-span-8">
+            <ProjectList />
+          </div>
+        </div>
       </main>
     </div>
   );
