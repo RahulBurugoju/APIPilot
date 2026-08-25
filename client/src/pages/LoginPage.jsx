@@ -81,22 +81,22 @@ function LoginPage() {
       {/* ---------------------------------------------------- */}
       {/* HEADER / BRAND LOGO */}
       {/* ---------------------------------------------------- */}
-      <header className="w-full max-w-sm mx-auto flex items-center justify-between">
+      <header className="w-full max-w-7xl mx-auto flex items-center justify-between">
         <Link
           to="/"
           className="inline-flex items-center gap-2.5 group transition-opacity hover:opacity-80"
         >
-          <div className="w-7 h-7 rounded-md bg-[#141416] border border-[#2C2C2E] flex items-center justify-center">
+          <div className="w-10 h-10 rounded-md bg-[#141416] border border-[#2C2C2E] flex items-center justify-center">
             <Terminal className="w-4 h-4 text-[#F5F5F7]" />
           </div>
-          <span className="text-sm font-semibold tracking-tight text-[#F5F5F7]">
+          <span className="text-2xl font-semibold tracking-tight text-[#F5F5F7]">
             APIpilot
           </span>
         </Link>
 
         <Link
           to="/register"
-          className="text-xs text-[#A1A1A6] hover:text-[#F5F5F7] transition-colors"
+          className="text-sm font-medium text-[#A1A1A6] hover:text-[#F5F5F7] transition-colors"
         >
           Create account
         </Link>
@@ -243,7 +243,7 @@ function LoginPage() {
       {/* ---------------------------------------------------- */}
       {/* FOOTER */}
       {/* ---------------------------------------------------- */}
-      <footer className="w-full max-w-sm mx-auto text-center text-[11px] text-[#6E6E73]">
+      <footer className="w-full max-w-7xl mx-auto text-center text-[11px] text-[#6E6E73] py-2">
         Protected by APIpilot security. By continuing, you agree to our Terms of
         Service.
       </footer>

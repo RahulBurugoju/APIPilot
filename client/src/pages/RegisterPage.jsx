@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { registerUser } from "../features/auth/auth.thunk.js";
 import { clearAuthError } from "../features/auth/authSlice.js";
-import { Terminal, Eye, EyeOff, AlertCircle, Loader2 } from "lucide-react";
+import { Terminal, Eye, EyeOff, AlertCircle, Loader2, Check } from "lucide-react";
 
 function RegisterPage() {
   const dispatch = useDispatch();
@@ -42,6 +42,17 @@ function RegisterPage() {
     }
   };
 
+  // Compute password criteria and strength
+  const passwordCriteria = [
+    { label: "8+ characters", met: formData.password.length >= 8 },
+    { label: "Uppercase letter", met: /[A-Z]/.test(formData.password) },
+    { label: "Lowercase letter", met: /[a-z]/.test(formData.password) },
+    { label: "Number", met: /[0-9]/.test(formData.password) },
+    { label: "Special character", met: /[^A-Za-z0-9]/.test(formData.password) },
+  ];
+
+  const strengthScore = passwordCriteria.filter((c) => c.met).length;
+
   const validate = () => {
     const errors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -58,8 +69,16 @@ function RegisterPage() {
 
     if (!formData.password) {
       errors.password = "Password is required";
-    } else if (formData.password.length < 6) {
-      errors.password = "Password must be at least 6 characters";
+    } else if (formData.password.length < 8) {
+      errors.password = "Password must be at least 8 characters";
+    } else if (!/[A-Z]/.test(formData.password)) {
+      errors.password = "Must contain at least one uppercase letter";
+    } else if (!/[a-z]/.test(formData.password)) {
+      errors.password = "Must contain at least one lowercase letter";
+    } else if (!/[0-9]/.test(formData.password)) {
+      errors.password = "Must contain at least one digit";
+    } else if (!/[^A-Za-z0-9]/.test(formData.password)) {
+      errors.password = "Must contain at least one special character";
     }
 
     if (!formData.confirmPassword) {
@@ -93,35 +112,35 @@ function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0B0D] text-[#F5F5F7] font-sans flex flex-col justify-between selection:bg-[#2C2C2E] selection:text-white px-4 py-8 antialiased">
+    <div className="min-h-screen bg-[#0B0B0D] text-[#F5F5F7] font-sans flex flex-col justify-between selection:bg-[#2C2C2E] selection:text-white px-4 sm:px-6 py-8 antialiased">
       {/* ---------------------------------------------------- */}
-      {/* HEADER / BRAND LOGO */}
+      {/* HEADER / BRAND LOGO  */}
       {/* ---------------------------------------------------- */}
-      <div className="w-full max-w-sm mx-auto flex items-center justify-between">
+      <header className="w-full max-w-7xl mx-auto flex items-center justify-between">
         <Link
           to="/"
           className="inline-flex items-center gap-2.5 group transition-opacity hover:opacity-80"
         >
-          <div className="w-7 h-7 rounded-md bg-[#141416] border border-[#2C2C2E] flex items-center justify-center">
+          <div className="w-10 h-10 rounded-md bg-[#141416] border border-[#2C2C2E] flex items-center justify-center">
             <Terminal className="w-4 h-4 text-[#F5F5F7]" />
           </div>
-          <span className="text-sm font-semibold tracking-tight text-[#F5F5F7]">
+          <span className="text-2xl font-semibold tracking-tight text-[#F5F5F7]">
             APIpilot
           </span>
         </Link>
 
         <Link
           to="/login"
-          className="text-xs text-[#A1A1A6] hover:text-[#F5F5F7] transition-colors"
+          className="text-sm font-medium text-[#A1A1A6] hover:text-[#F5F5F7] transition-colors"
         >
           Sign in
         </Link>
-      </div>
+      </header>
 
       {/* ---------------------------------------------------- */}
       {/* MAIN FORM CONTAINER */}
       {/* ---------------------------------------------------- */}
-      <div className="w-full max-w-sm mx-auto my-auto py-8">
+      <main className="w-full max-w-sm mx-auto my-auto py-8">
         <div className="mb-6">
           <h1 className="text-2xl font-semibold tracking-tight text-[#F5F5F7]">
             Create an account
@@ -218,7 +237,7 @@ function RegisterPage() {
                 autoComplete="new-password"
                 value={formData.password}
                 onChange={handleOnChange}
-                placeholder="At least 6 characters"
+                placeholder="At least 8 characters"
                 className={`w-full px-3 py-2 pr-9 rounded-md bg-[#141416] border text-xs text-[#F5F5F7] placeholder-[#6E6E73] transition-colors focus:outline-none focus:ring-1 ${
                   fieldErrors.password
                     ? "border-[#F87171] focus:ring-[#F87171]"
@@ -239,6 +258,50 @@ function RegisterPage() {
                 )}
               </button>
             </div>
+
+            {/* Password Strength Indicator */}
+            {formData.password && (
+              <div className="mt-2 space-y-1.5">
+                {/* Segmented Strength Bar */}
+                <div className="grid grid-cols-5 gap-1 h-1">
+                  {[1, 2, 3, 4, 5].map((level) => {
+                    const active = strengthScore >= level;
+                    let barColor = "bg-[#2C2C2E]";
+                    if (active) {
+                      if (strengthScore <= 2) barColor = "bg-[#F87171]";
+                      else if (strengthScore <= 4) barColor = "bg-[#FBBF24]";
+                      else barColor = "bg-[#00E599]";
+                    }
+                    return (
+                      <div
+                        key={level}
+                        className={`rounded-full transition-colors duration-200 ${barColor}`}
+                      />
+                    );
+                  })}
+                </div>
+
+                {/* Password Criteria Checklist */}
+                <div className="pt-1 grid grid-cols-2 gap-x-2 gap-y-1 text-[11px]">
+                  {passwordCriteria.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className={`flex items-center gap-1.5 transition-colors ${
+                        item.met ? "text-[#F5F5F7]" : "text-[#6E6E73]"
+                      }`}
+                    >
+                      <Check
+                        className={`w-3 h-3 shrink-0 ${
+                          item.met ? "text-[#00E599]" : "text-[#3E3E42]"
+                        }`}
+                      />
+                      <span>{item.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {fieldErrors.password && (
               <p className="mt-1 text-[11px] text-[#F87171]">
                 {fieldErrors.password}
@@ -297,7 +360,7 @@ function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-9 flex items-center justify-center gap-2 rounded-md bg-[#F5F5F7] text-[#0B0B0D] text-xs font-medium hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full h-9 flex items-center justify-center gap-2 rounded-md bg-[#F5F5F7] text-[#0B0B0D] text-xs font-medium hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
             >
               {loading ? (
                 <>
@@ -320,12 +383,12 @@ function RegisterPage() {
             Sign in
           </Link>
         </div>
-      </div>
+      </main>
 
       {/* ---------------------------------------------------- */}
       {/* FOOTER */}
       {/* ---------------------------------------------------- */}
-      <footer className="w-full max-w-sm mx-auto text-center text-[11px] text-[#6E6E73]">
+      <footer className="w-full max-w-7xl mx-auto text-center text-[11px] text-[#6E6E73] py-2">
         Protected by APIpilot security. By continuing, you agree to our Terms of
         Service.
       </footer>
