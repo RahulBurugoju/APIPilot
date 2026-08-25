@@ -6,6 +6,7 @@ import "./App.css";
 import AppRouter from "./routes/AppRouter";
 import { useEffect } from "react";
 import healthService from "./services/health.service";
+import AuthInitializer from "./components/auth/AuthInitializer";
 
 function App() {
   // const [status, setStatus] = useState("checking the status...");
@@ -25,7 +26,9 @@ function App() {
 
   return (
     <>
-      <AppRouter />
+      <AuthInitializer>
+        <AppRouter />
+      </AuthInitializer>
     </>
   );
 }
