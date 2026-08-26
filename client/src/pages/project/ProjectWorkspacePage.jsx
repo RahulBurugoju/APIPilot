@@ -5,32 +5,38 @@ import projectThunks from "../../features/project/project.thunk";
 import ThemeToggle from "../../components/common/ThemeToggle";
 import EditProjectModal from "../../components/projects/EditProjectModal";
 import DeleteProjectModal from "../../components/projects/DeleteProjectModal";
+import WorkspacePlaceholder from "../../components/workspace/WorkspacePlaceholder";
 import {
-  ArrowLeft,
   Folder,
   Clock,
   Copy,
   Check,
   AlertCircle,
-  Plus,
   Send,
   Sliders,
   Layers,
-  Code,
   Edit2,
   Trash2,
+  ChevronDown,
+  LayoutDashboard,
+  Terminal,
+  LogOut,
 } from "lucide-react";
+import { logoutUser } from "../../features/auth/auth.thunk";
 
 function ProjectWorkspacePage() {
   const { projectId } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  const { user } = useSelector((state) => state.auth);
   const { currentProject, loading, error } = useSelector(
     (state) => state.project
   );
+
   const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState("endpoints");
+  const [activeNav, setActiveNav] = useState("overview");
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   // Modal Visibility States
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -50,17 +56,31 @@ function ProjectWorkspacePage() {
     }
   };
 
+  const handleLogout = () => {
+    dispatch(logoutUser());
+  };
+
   // Loading State
   if (loading && !currentProject) {
     return (
       <div className="min-h-screen bg-[#FAF3E1] dark:bg-[#0B0B0D] text-[#222222] dark:text-[#F5F5F7] font-sans antialiased transition-colors duration-200">
         <header className="border-b border-[#E6D2A5] dark:border-[#1F1F23] bg-[#FAF3E1]/90 dark:bg-[#141416]/50 h-14 flex items-center px-6">
-          <div className="h-4 w-36 bg-[#E6D2A5]/60 dark:bg-[#1C1C1F] rounded animate-pulse" />
+          <div className="h-4 w-40 bg-[#E6D2A5]/60 dark:bg-[#1C1C1F] rounded animate-pulse" />
         </header>
-        <main className="max-w-7xl mx-auto px-6 py-10 space-y-6">
-          <div className="h-28 rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] p-6 animate-pulse" />
-          <div className="h-64 rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] animate-pulse" />
-        </main>
+        <div className="flex">
+          <div className="w-56 h-[calc(100vh-3.5rem)] border-r border-[#E6D2A5] dark:border-[#1F1F23] p-4 space-y-3">
+            {[1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="h-8 rounded bg-[#E6D2A5]/40 dark:bg-[#1C1C1F] animate-pulse"
+              />
+            ))}
+          </div>
+          <main className="flex-1 p-8 space-y-6">
+            <div className="h-20 rounded bg-[#E6D2A5]/40 dark:bg-[#1C1C1F] animate-pulse" />
+            <div className="h-64 rounded bg-[#E6D2A5]/40 dark:bg-[#1C1C1F] animate-pulse" />
+          </main>
+        </div>
       </div>
     );
   }
@@ -87,7 +107,6 @@ function ProjectWorkspacePage() {
             onClick={() => navigate("/dashboard")}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-[#FF6D1F] text-white hover:bg-[#E85B0F] text-xs font-medium transition-colors cursor-pointer"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
             Back to Dashboard
           </button>
         </div>
@@ -106,214 +125,288 @@ function ProjectWorkspacePage() {
   return (
     <div className="min-h-screen bg-[#FAF3E1] dark:bg-[#0B0B0D] text-[#222222] dark:text-[#F5F5F7] font-sans antialiased transition-colors duration-200 flex flex-col">
       {/* ---------------------------------------------------- */}
-      {/* TOP WORKSPACE NAVIGATION */}
+      {/* TOP HEADER: APIPilot / {ProjectName}         User ▾  */}
       {/* ---------------------------------------------------- */}
-      <header className="sticky top-0 z-40 border-b border-[#E6D2A5] dark:border-[#1F1F23] bg-[#FAF3E1]/90 dark:bg-[#141416]/80 backdrop-blur-md transition-colors duration-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-          {/* Left: Breadcrumbs / Back */}
-          <div className="flex items-center gap-3">
+      <header className="sticky top-0 z-40 border-b border-[#E6D2A5] dark:border-[#1F1F23] bg-[#FAF3E1]/95 dark:bg-[#141416]/90 backdrop-blur-md transition-colors duration-200">
+        <div className="w-full px-4 sm:px-6 h-14 flex items-center justify-between">
+          {/* Left: Breadcrumbs */}
+          <div className="flex items-center gap-2.5 text-xs">
             <Link
               to="/dashboard"
-              className="p-1.5 rounded-md hover:bg-[#F5E7C6] dark:hover:bg-[#1C1C1F] text-[#5C5C5C] dark:text-[#A1A1A6] hover:text-[#222222] dark:hover:text-[#F5F5F7] transition-colors"
-              title="Back to Dashboard"
+              className="flex items-center gap-2 font-semibold text-[#222222] dark:text-[#F5F5F7] hover:text-[#FF6D1F] transition-colors"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <div className="w-6 h-6 rounded bg-[#F5E7C6] dark:bg-[#1C1C1F] border border-[#E6D2A5] dark:border-[#2C2C2E] flex items-center justify-center text-[#FF6D1F]">
+                <Terminal className="w-3.5 h-3.5" />
+              </div>
+              <span>APIPilot</span>
             </Link>
 
-            <div className="flex items-center gap-2 text-xs font-medium">
-              <Link
-                to="/dashboard"
-                className="text-[#5C5C5C] dark:text-[#A1A1A6] hover:text-[#222222] dark:hover:text-[#F5F5F7] transition-colors"
-              >
-                Projects
-              </Link>
-              <span className="text-[#8C8C8C] dark:text-[#6E6E73]">/</span>
-              <span className="text-[#222222] dark:text-[#F5F5F7] font-semibold truncate max-w-[200px] sm:max-w-xs">
-                {currentProject?.name || "Workspace"}
-              </span>
-            </div>
+            <span className="text-[#8C8C8C] dark:text-[#6E6E73] font-mono">/</span>
+
+            <span className="font-semibold text-[#222222] dark:text-[#F5F5F7] truncate max-w-[200px] sm:max-w-md">
+              {currentProject?.name || "My API"}
+            </span>
           </div>
 
-          {/* Right: Actions */}
+          {/* Right: Theme Toggle & User Menu */}
           <div className="flex items-center gap-3">
             <ThemeToggle />
-            <Link
-              to="/dashboard"
-              className="px-3 py-1.5 rounded-md bg-[#FFFFFF] dark:bg-[#1C1C1F] hover:bg-[#F5E7C6] dark:hover:bg-[#2C2C2E] text-[#222222] dark:text-[#A1A1A6] hover:text-[#FF6D1F] dark:hover:text-[#F5F5F7] border border-[#E6D2A5] dark:border-[#2C2C2E] text-xs transition-colors"
-            >
-              Dashboard
-            </Link>
+
+            {/* User Dropdown Menu */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                className="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-[#FFFFFF] dark:bg-[#1C1C1F] hover:bg-[#F5E7C6] dark:hover:bg-[#2C2C2E] border border-[#E6D2A5] dark:border-[#2C2C2E] text-xs font-medium text-[#222222] dark:text-[#F5F5F7] transition-colors cursor-pointer select-none"
+              >
+                <span className="truncate max-w-[120px]">
+                  {user?.name || user?.email?.split("@")[0] || "User"}
+                </span>
+                <ChevronDown className="w-3.5 h-3.5 text-[#8C8C8C] dark:text-[#6E6E73]" />
+              </button>
+
+              {isUserMenuOpen && (
+                <div
+                  className="absolute right-0 mt-1.5 w-48 rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] shadow-lg py-1.5 z-50 text-xs animate-in fade-in zoom-in-95 duration-100"
+                  onClick={() => setIsUserMenuOpen(false)}
+                >
+                  <div className="px-3 py-2 border-b border-[#FAF3E1] dark:border-[#1F1F23]">
+                    <p className="font-semibold text-[#222222] dark:text-[#F5F5F7] truncate">
+                      {user?.name || "User Account"}
+                    </p>
+                    <p className="text-[11px] text-[#8C8C8C] dark:text-[#6E6E73] truncate">
+                      {user?.email}
+                    </p>
+                  </div>
+
+                  <Link
+                    to="/dashboard"
+                    className="flex items-center gap-2 px-3 py-2 text-[#5C5C5C] dark:text-[#A1A1A6] hover:bg-[#FAF3E1] dark:hover:bg-[#1C1C1F] hover:text-[#222222] dark:hover:text-[#F5F5F7] transition-colors"
+                  >
+                    <LayoutDashboard className="w-3.5 h-3.5" />
+                    <span>All Projects</span>
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-[#DC2626] dark:text-[#F87171] hover:bg-[#FEE2E2] dark:hover:bg-[#2A1517] transition-colors text-left cursor-pointer"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>Sign out</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
 
       {/* ---------------------------------------------------- */}
-      {/* MAIN WORKSPACE BODY */}
+      {/* WORKSPACE BODY: SIDEBAR + MAIN CANVAS                */}
       {/* ---------------------------------------------------- */}
-      <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 space-y-6 flex-1">
-        {/* Project Header Banner Card */}
-        <div className="p-6 rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] shadow-xs">
-          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-            <div className="space-y-1.5 max-w-3xl">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-md bg-[#FAF3E1] dark:bg-[#1C1C1F] border border-[#E6D2A5] dark:border-[#2C2C2E] flex items-center justify-center text-[#FF6D1F]">
-                  <Folder className="w-4 h-4" />
-                </div>
-                <h1 className="text-xl sm:text-2xl font-semibold text-[#222222] dark:text-[#F5F5F7] tracking-tight">
-                  {currentProject?.name}
-                </h1>
-              </div>
+      <div className="flex-1 flex flex-col md:flex-row">
+        {/* Left Sidebar */}
+        <aside className="w-full md:w-60 border-b md:border-b-0 md:border-r border-[#E6D2A5] dark:border-[#1F1F23] bg-[#FAF3E1]/70 dark:bg-[#101012]/60 p-4 space-y-6 shrink-0 transition-colors duration-200">
+          <div>
+            <p className="px-3 text-[11px] font-mono uppercase tracking-wider text-[#8C8C8C] dark:text-[#6E6E73] mb-2 font-semibold">
+              Workspace
+            </p>
+            <nav className="space-y-1">
+              <button
+                type="button"
+                onClick={() => setActiveNav("overview")}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-medium transition-colors cursor-pointer ${
+                  activeNav === "overview"
+                    ? "bg-[#FF6D1F] text-white shadow-xs font-semibold"
+                    : "text-[#5C5C5C] dark:text-[#A1A1A6] hover:bg-[#F5E7C6] dark:hover:bg-[#1C1C1F] hover:text-[#222222] dark:hover:text-[#F5F5F7]"
+                }`}
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                <span>Overview</span>
+              </button>
 
-              <p className="text-xs sm:text-sm text-[#5C5C5C] dark:text-[#A1A1A6] leading-relaxed pt-1">
+              <button
+                type="button"
+                onClick={() => setActiveNav("collections")}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-medium transition-colors cursor-pointer ${
+                  activeNav === "collections"
+                    ? "bg-[#FF6D1F] text-white shadow-xs font-semibold"
+                    : "text-[#5C5C5C] dark:text-[#A1A1A6] hover:bg-[#F5E7C6] dark:hover:bg-[#1C1C1F] hover:text-[#222222] dark:hover:text-[#F5F5F7]"
+                }`}
+              >
+                <Folder className="w-4 h-4" />
+                <span>Collections</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveNav("requests")}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-medium transition-colors cursor-pointer ${
+                  activeNav === "requests"
+                    ? "bg-[#FF6D1F] text-white shadow-xs font-semibold"
+                    : "text-[#5C5C5C] dark:text-[#A1A1A6] hover:bg-[#F5E7C6] dark:hover:bg-[#1C1C1F] hover:text-[#222222] dark:hover:text-[#F5F5F7]"
+                }`}
+              >
+                <Send className="w-4 h-4" />
+                <span>Requests</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveNav("environments")}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-medium transition-colors cursor-pointer ${
+                  activeNav === "environments"
+                    ? "bg-[#FF6D1F] text-white shadow-xs font-semibold"
+                    : "text-[#5C5C5C] dark:text-[#A1A1A6] hover:bg-[#F5E7C6] dark:hover:bg-[#1C1C1F] hover:text-[#222222] dark:hover:text-[#F5F5F7]"
+                }`}
+              >
+                <Sliders className="w-4 h-4" />
+                <span>Environments</span>
+              </button>
+            </nav>
+          </div>
+        </aside>
+
+        {/* Right Main Content Canvas */}
+        <main className="flex-1 p-6 md:p-8 space-y-6 max-w-8xl">
+          {/* Project Title & Summary Header */}
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+            <div className="space-y-1">
+              <h1 className="text-2xl font-bold text-[#222222] dark:text-[#F5F5F7] tracking-tight">
+                {currentProject?.name || "My API"}
+              </h1>
+              <p className="text-xs sm:text-sm text-[#5C5C5C] dark:text-[#A1A1A6]">
                 {currentProject?.description ||
-                  "No description provided for this collection."}
+                  "Backend API development workspace"}
               </p>
             </div>
 
-            {/* Right: Actions & Metadata */}
-            <div className="flex flex-col sm:items-end gap-3 shrink-0">
-              {/* Edit & Delete Action Buttons */}
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsEditOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#FFFFFF] dark:bg-[#1C1C1F] hover:bg-[#F5E7C6] dark:hover:bg-[#2C2C2E] text-[#222222] dark:text-[#F5F5F7] border border-[#E6D2A5] dark:border-[#2C2C2E] text-xs font-medium transition-colors cursor-pointer"
-                >
-                  <Edit2 className="w-3.5 h-3.5 text-[#5C5C5C] dark:text-[#A1A1A6]" />
-                  <span>Edit Project</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setIsDeleteModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#FFFFFF] dark:bg-[#1C1C1F] hover:bg-[#FEE2E2] dark:hover:bg-[#2A1517] text-[#DC2626] dark:text-[#F87171] border border-[#FCA5A5] dark:border-[#481E24] text-xs font-medium transition-colors cursor-pointer"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>Delete Project</span>
-                </button>
-              </div>
-
-              {/* Metadata Badges */}
-              <div className="flex items-center gap-2.5 text-[11px] text-[#8C8C8C] dark:text-[#6E6E73] font-mono">
-                <div className="flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  <span>Updated {formattedDate}</span>
-                </div>
-
-                {currentProject?._id && (
-                  <button
-                    type="button"
-                    onClick={handleCopyId}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#FAF3E1] dark:bg-[#1C1C1F] border border-[#E6D2A5] dark:border-[#2C2C2E] text-[#5C5C5C] dark:text-[#A1A1A6] hover:text-[#222222] dark:hover:text-[#F5F5F7] transition-colors cursor-pointer"
-                    title="Copy Project ID"
-                  >
-                    <span>ID: {currentProject._id.slice(-6)}</span>
-                    {copied ? (
-                      <Check className="w-3 h-3 text-[#FF6D1F]" />
-                    ) : (
-                      <Copy className="w-3 h-3" />
-                    )}
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Tab Navigation */}
-        <div className="flex items-center gap-2 border-b border-[#E6D2A5] dark:border-[#1F1F23] pb-px text-xs font-medium">
-          <button
-            type="button"
-            onClick={() => setActiveTab("endpoints")}
-            className={`pb-2.5 px-3 border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 ${
-              activeTab === "endpoints"
-                ? "border-[#FF6D1F] text-[#FF6D1F] dark:text-white"
-                : "border-transparent text-[#5C5C5C] dark:text-[#A1A1A6] hover:text-[#222222] dark:hover:text-[#F5F5F7]"
-            }`}
-          >
-            <Send className="w-3.5 h-3.5" />
-            <span>Endpoints & Requests</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("environments")}
-            className={`pb-2.5 px-3 border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 ${
-              activeTab === "environments"
-                ? "border-[#FF6D1F] text-[#FF6D1F] dark:text-white"
-                : "border-transparent text-[#5C5C5C] dark:text-[#A1A1A6] hover:text-[#222222] dark:hover:text-[#F5F5F7]"
-            }`}
-          >
-            <Sliders className="w-3.5 h-3.5" />
-            <span>Environments</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("schema")}
-            className={`pb-2.5 px-3 border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 ${
-              activeTab === "schema"
-                ? "border-[#FF6D1F] text-[#FF6D1F] dark:text-white"
-                : "border-transparent text-[#5C5C5C] dark:text-[#A1A1A6] hover:text-[#222222] dark:hover:text-[#F5F5F7]"
-            }`}
-          >
-            <Code className="w-3.5 h-3.5" />
-            <span>Contract & Schema</span>
-          </button>
-        </div>
-
-        {/* Tab Content Areas */}
-        {activeTab === "endpoints" && (
-          <div className="p-8 rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] text-center space-y-3 shadow-xs">
-            <div className="w-10 h-10 rounded-full bg-[#FAF3E1] dark:bg-[#1C1C1F] border border-[#E6D2A5] dark:border-[#2C2C2E] flex items-center justify-center mx-auto text-[#FF6D1F]">
-              <Layers className="w-5 h-5" />
-            </div>
-            <h3 className="text-sm font-semibold text-[#222222] dark:text-[#F5F5F7]">
-              No endpoints in this workspace yet
-            </h3>
-            <p className="text-xs text-[#5C5C5C] dark:text-[#A1A1A6] max-w-sm mx-auto">
-              Start building your API collection by creating your first HTTP endpoint request.
-            </p>
-            <div className="pt-2">
+            {/* Quick Actions (Edit, Delete, Copy ID) */}
+            <div className="flex items-center gap-2">
               <button
                 type="button"
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md bg-[#FF6D1F] text-white hover:bg-[#E85B0F] text-xs font-medium transition-colors shadow-sm cursor-pointer"
+                onClick={() => setIsEditOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#FFFFFF] dark:bg-[#1C1C1F] hover:bg-[#F5E7C6] dark:hover:bg-[#2C2C2E] text-[#222222] dark:text-[#F5F5F7] border border-[#E6D2A5] dark:border-[#2C2C2E] text-xs font-medium transition-colors cursor-pointer"
               >
-                <Plus className="w-3.5 h-3.5" />
-                New Request
+                <Edit2 className="w-3.5 h-3.5 text-[#5C5C5C] dark:text-[#A1A1A6]" />
+                <span>Edit</span>
               </button>
-            </div>
-          </div>
-        )}
 
-        {activeTab === "environments" && (
-          <div className="p-8 rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] text-center space-y-3 shadow-xs">
-            <div className="w-10 h-10 rounded-full bg-[#FAF3E1] dark:bg-[#1C1C1F] border border-[#E6D2A5] dark:border-[#2C2C2E] flex items-center justify-center mx-auto text-[#FF6D1F]">
-              <Sliders className="w-5 h-5" />
-            </div>
-            <h3 className="text-sm font-semibold text-[#222222] dark:text-[#F5F5F7]">
-              Default Environment: Staging
-            </h3>
-            <p className="text-xs text-[#5C5C5C] dark:text-[#A1A1A6] max-w-sm mx-auto">
-              Manage base URLs, API keys, and environment variables scoped to this project.
-            </p>
-          </div>
-        )}
+              <button
+                type="button"
+                onClick={() => setIsDeleteModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#FFFFFF] dark:bg-[#1C1C1F] hover:bg-[#FEE2E2] dark:hover:bg-[#2A1517] text-[#DC2626] dark:text-[#F87171] border border-[#FCA5A5] dark:border-[#481E24] text-xs font-medium transition-colors cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete</span>
+              </button>
 
-        {activeTab === "schema" && (
-          <div className="p-8 rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] text-center space-y-3 shadow-xs">
-            <div className="w-10 h-10 rounded-full bg-[#FAF3E1] dark:bg-[#1C1C1F] border border-[#E6D2A5] dark:border-[#2C2C2E] flex items-center justify-center mx-auto text-[#FF6D1F]">
-              <Code className="w-5 h-5" />
+              {currentProject?._id && (
+                <button
+                  type="button"
+                  onClick={handleCopyId}
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded bg-[#FAF3E1] dark:bg-[#1C1C1F] border border-[#E6D2A5] dark:border-[#2C2C2E] text-[11px] font-mono text-[#5C5C5C] dark:text-[#A1A1A6] hover:text-[#222222] dark:hover:text-[#F5F5F7] transition-colors cursor-pointer"
+                  title="Copy Project ID"
+                >
+                  <span>ID: {currentProject._id.slice(-6)}</span>
+                  {copied ? (
+                    <Check className="w-3 h-3 text-[#FF6D1F]" />
+                  ) : (
+                    <Copy className="w-3 h-3" />
+                  )}
+                </button>
+              )}
             </div>
-            <h3 className="text-sm font-semibold text-[#222222] dark:text-[#F5F5F7]">
-              OpenAPI & Contract Specifications
-            </h3>
-            <p className="text-xs text-[#5C5C5C] dark:text-[#A1A1A6] max-w-sm mx-auto">
-              Import OpenAPI 3.0 specs or generate schemas automatically from tested responses.
-            </p>
           </div>
-        )}
-      </main>
+
+          {/* Horizontal Line Divider */}
+          <hr className="border-[#E6D2A5] dark:border-[#1F1F23]" />
+
+          {/* Dynamic Content Views */}
+          {activeNav === "overview" && (
+            <div className="space-y-6">
+              {/* Collections Section Placeholder */}
+              <div className="p-6 rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] space-y-2 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Folder className="w-4 h-4 text-[#FF6D1F]" />
+                    <h3 className="text-sm font-semibold text-[#222222] dark:text-[#F5F5F7]">
+                      Collections
+                    </h3>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full bg-[#FAF3E1] dark:bg-[#1C1C1F] border border-[#E6D2A5] dark:border-[#2C2C2E] text-[10px] font-mono font-medium text-[#FF6D1F]">
+                    Coming soon
+                  </span>
+                </div>
+                <p className="text-xs text-[#5C5C5C] dark:text-[#A1A1A6] leading-relaxed">
+                  Group your API endpoints into structured collections, folders, and modules for easy test suites.
+                </p>
+              </div>
+
+              {/* Requests Section Placeholder */}
+              <div className="p-6 rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] space-y-2 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Send className="w-4 h-4 text-[#FF6D1F]" />
+                    <h3 className="text-sm font-semibold text-[#222222] dark:text-[#F5F5F7]">
+                      Requests
+                    </h3>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full bg-[#FAF3E1] dark:bg-[#1C1C1F] border border-[#E6D2A5] dark:border-[#2C2C2E] text-[10px] font-mono font-medium text-[#FF6D1F]">
+                    Coming soon
+                  </span>
+                </div>
+                <p className="text-xs text-[#5C5C5C] dark:text-[#A1A1A6] leading-relaxed">
+                  Build HTTP GET, POST, PUT, DELETE requests with header builders, body editors, and live response timing.
+                </p>
+              </div>
+
+              {/* Environments Section Placeholder */}
+              <div className="p-6 rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] space-y-2 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Sliders className="w-4 h-4 text-[#FF6D1F]" />
+                    <h3 className="text-sm font-semibold text-[#222222] dark:text-[#F5F5F7]">
+                      Environments
+                    </h3>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full bg-[#FAF3E1] dark:bg-[#1C1C1F] border border-[#E6D2A5] dark:border-[#2C2C2E] text-[10px] font-mono font-medium text-[#FF6D1F]">
+                    Coming soon
+                  </span>
+                </div>
+                <p className="text-xs text-[#5C5C5C] dark:text-[#A1A1A6] leading-relaxed">
+                  Configure dynamic environment variables (Base URLs, Bearer Tokens, API Keys) for Local, Staging, and Production.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {activeNav === "collections" && (
+            <WorkspacePlaceholder
+              title="Collections Workspace"
+              description="Organize your endpoints into reusable folders, test pipelines, and shared workspace collections."
+              type="collections"
+            />
+          )}
+
+          {activeNav === "requests" && (
+            <WorkspacePlaceholder
+              title="HTTP Request Builder"
+              description="Build, test, and inspect REST and GraphQL endpoints with automatic session token rotation and response assertions."
+              type="requests"
+            />
+          )}
+
+          {activeNav === "environments" && (
+            <WorkspacePlaceholder
+              title="Environment Variables"
+              description="Manage environment variables, secret vaults, and base URLs across Localhost, Staging, and Production."
+              type="environments"
+            />
+          )}
+        </main>
+      </div>
 
       {/* ---------------------------------------------------- */}
       {/* EXTRACTED EDIT & DELETE MODALS */}
