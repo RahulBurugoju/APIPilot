@@ -1,19 +1,19 @@
-import React from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { logoutUser } from '../features/auth/auth.thunk.js'
-import CreateProjectForm from '../components/projects/CreateProjectForm.jsx'
-import ThemeToggle from '../components/common/ThemeToggle.jsx'
-import { useEffect } from 'react'
-import projectThunks from '../features/project/project.thunk.js'
-import ProjectList from '../components/projects/ProjectList.jsx'
+import React from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { logoutUser } from "../../features/auth/auth.thunk.js";
+import CreateProjectForm from "../../components/projects/CreateProjectForm.jsx";
+import ThemeToggle from "../../components/common/ThemeToggle.jsx";
+import { useEffect } from "react";
+import projectThunks from "../../features/project/project.thunk.js";
+import ProjectList from "../../components/projects/ProjectList.jsx";
 
 function DashboardPage() {
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
-  
-  useEffect(()=>{
+
+  useEffect(() => {
     dispatch(projectThunks.getProjects());
-  },[dispatch])
+  }, [dispatch]);
 
   return (
     <div className="min-h-screen bg-[#FAF3E1] dark:bg-[#0B0B0D] text-[#222222] dark:text-[#F5F5F7] font-sans antialiased transition-colors duration-200">
@@ -28,7 +28,10 @@ function DashboardPage() {
 
           <div className="flex items-center gap-3 text-xs">
             <span className="text-[#5C5C5C] dark:text-[#A1A1A6] hidden sm:inline">
-              Signed in as <span className="text-[#222222] dark:text-[#F5F5F7] font-semibold">{user?.email || user?.name || "User"}</span>
+              Signed in as{" "}
+              <span className="text-[#222222] dark:text-[#F5F5F7] font-semibold">
+                {user?.email || user?.name || "User"}
+              </span>
             </span>
             <ThemeToggle />
             <button

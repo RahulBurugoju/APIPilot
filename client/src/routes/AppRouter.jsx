@@ -5,7 +5,7 @@ import PublicOnlyRoute from "./PublicOnlyRoute";
 import LandingPage from "../pages/LandingPage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
-import DashboardPage from "../pages/DashboardPage";
+import DashboardPage from "../pages/dashboard/DashboardPage";
 import ProjectWorkspacePage from "../pages/project/ProjectWorkspacePage";
 
 function AppRouter() {
@@ -35,7 +35,7 @@ function AppRouter() {
           path: "/dashboard",
           element: <DashboardPage />,
         },
-         {
+        {
           path: "/projects/:projectId",
           element: <ProjectWorkspacePage />,
         },
