@@ -25,11 +25,25 @@ const getProjects = createAsyncThunk(
       return rejectWithValue(msg);
     }
   }
-)
+) 
+
+const getProject = createAsyncThunk('projects/getProject',async({projectId},{rejectWithValue})=>{
+
+  try{
+
+    const data = await projectServices.getProject({projectId})
+    return data;
+  }
+  catch(error){
+    const msg = error?.response?.data?.message || error?.message || "Something went wrong while fetching project";
+    return rejectWithValue(msg);
+  }
+})
 
 const projectThunks = {
     createProject,
-    getProjects
+    getProjects,
+    getProject
 }
 
 export default projectThunks

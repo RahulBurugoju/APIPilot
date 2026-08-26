@@ -6,6 +6,7 @@ import LandingPage from "../pages/LandingPage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import DashboardPage from "../pages/DashboardPage";
+import ProjectWorkspacePage from "../pages/project/ProjectWorkspacePage";
 
 function AppRouter() {
   const router = createBrowserRouter([
@@ -33,6 +34,10 @@ function AppRouter() {
         {
           path: "/dashboard",
           element: <DashboardPage />,
+        },
+         {
+          path: "/projects/:projectId",
+          element: <ProjectWorkspacePage />,
         },
         {
           path: "/profile",

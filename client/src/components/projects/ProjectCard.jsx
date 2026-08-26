@@ -1,7 +1,11 @@
 import React from "react";
 import { Folder, ArrowUpRight, Clock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const ProjectCard = ({ project }) => {
+    const navigate = useNavigate();
+
+    
   const formattedDate = project.updatedAt
     ? new Date(project.updatedAt).toLocaleDateString(undefined, {
         month: "short",
@@ -11,7 +15,7 @@ const ProjectCard = ({ project }) => {
     : "Recently";
 
   return (
-    <div className="group relative flex flex-col justify-between p-5 rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] hover:border-[#FF6D1F] dark:hover:border-[#6E6E73] transition-all duration-200 shadow-xs hover:shadow-sm cursor-pointer">
+    <div onClick={()=>navigate(`/projects/${project._id}`)} className="group relative flex flex-col justify-between p-5 rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] hover:border-[#FF6D1F] dark:hover:border-[#6E6E73] transition-all duration-200 shadow-xs hover:shadow-sm cursor-pointer">
       <div>
         {/* Header: Icon + Name + Arrow */}
         <div className="flex items-start justify-between gap-3 mb-2.5">

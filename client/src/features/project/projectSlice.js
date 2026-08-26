@@ -48,8 +48,21 @@ const projectSlice = createSlice({
       .addCase(projectThunks.getProjects.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-        state.projects = state.projects || [];
-      });
+        state.projects = state.projects || [];  
+      })
+      .addCase(projectThunks.getProject.pending , (state)=>{
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(projectThunks.getProject.fulfilled , (state , action)=>{
+        state.loading = false;
+        state.currentProject = action.payload?.data?.project;
+      })
+      .addCase(projectThunks.getProject.rejected , (state , action)=>{
+        state.loading = false;
+        state.error = action.payload;
+        state.currentProject = state.currentProject || null;
+      })  
   },
 });
 

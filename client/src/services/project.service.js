@@ -10,10 +10,15 @@ const getProjects = async ()=>{
   const response = await api("/projects")
   return response.data
 }
+const getProject = async({projectId})=>{
+  const  response = await api.get(`/projects/${projectId}`)
+  return response.data
+} 
 
 const projectServices = {
     createProject,
-    getProjects
+    getProjects,
+    getProject
 }
 
 export default projectServices
