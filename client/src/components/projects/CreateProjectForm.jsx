@@ -9,11 +9,20 @@ function CreateProjectForm() {
   const { currentProject, loading, error } = useSelector((state) => state.project);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [baseUrl, setBaseUrl] = useState("");
+  const [projectType, setProjectType] = useState("rest");
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!name.trim()) return;
-    dispatch(projectThunks.createProject({ name: name.trim(), description: description.trim() }));
+    dispatch(
+      projectThunks.createProject({
+        name: name.trim(),
+        description: description.trim(),
+        baseUrl: baseUrl.trim(),
+        projectType,
+      })
+    );
   };
 
   const handleOnChange = (e) => {
@@ -27,11 +36,19 @@ function CreateProjectForm() {
     if (fieldName === "description") {
       setDescription(value);
     }
+    if (fieldName === "baseUrl") {
+      setBaseUrl(value);
+    }
+    if (fieldName === "projectType") {
+      setProjectType(value);
+    }
   };
 
   const handleCreateAnother = () => {
     setName("");
     setDescription("");
+    setBaseUrl("");
+    setProjectType("rest");
     dispatch(resetCurrentProject());
     dispatch(clearProjectError());
   };
@@ -100,6 +117,36 @@ function CreateProjectForm() {
             value={name}
             required
             className="w-full px-3 py-1.5 rounded-md bg-[#FAF3E1]/60 dark:bg-[#0B0B0D] border border-[#E6D2A5] dark:border-[#2C2C2E] text-xs text-[#222222] dark:text-[#F5F5F7] placeholder-[#8C8C8C] dark:placeholder-[#6E6E73] focus:outline-none focus:border-[#FF6D1F] dark:focus:border-[#6E6E73] focus:ring-1 focus:ring-[#FF6D1F] dark:focus:ring-[#6E6E73] transition-colors"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="projectType" className="block text-xs font-medium text-[#5C5C5C] dark:text-[#A1A1A6] mb-1">
+            Project Type
+          </label>
+          <select
+            id="projectType"
+            name="projectType"
+            value={projectType}
+            onChange={handleOnChange}
+            className="w-full px-3 py-1.5 rounded-md bg-[#FAF3E1]/60 dark:bg-[#0B0B0D] border border-[#E6D2A5] dark:border-[#2C2C2E] text-xs text-[#222222] dark:text-[#F5F5F7] focus:outline-none focus:border-[#FF6D1F] dark:focus:border-[#6E6E73] focus:ring-1 focus:ring-[#FF6D1F] dark:focus:ring-[#6E6E73] transition-colors cursor-pointer"
+          >
+            <option value="rest">REST API (HTTP)</option>
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="baseUrl" className="block text-xs font-medium text-[#5C5C5C] dark:text-[#A1A1A6] mb-1">
+            Base URL <span className="text-[#8C8C8C] dark:text-[#6E6E73] text-[10px]">(Optional)</span>
+          </label>
+          <input
+            type="url"
+            id="baseUrl"
+            name="baseUrl"
+            placeholder="https://api.example.com/v1"
+            onChange={handleOnChange}
+            value={baseUrl}
+            className="w-full px-3 py-1.5 rounded-md bg-[#FAF3E1]/60 dark:bg-[#0B0B0D] border border-[#E6D2A5] dark:border-[#2C2C2E] text-xs text-[#222222] dark:text-[#F5F5F7] font-mono placeholder-[#8C8C8C] dark:placeholder-[#6E6E73] focus:outline-none focus:border-[#FF6D1F] dark:focus:border-[#6E6E73] focus:ring-1 focus:ring-[#FF6D1F] dark:focus:ring-[#6E6E73] transition-colors"
           />
         </div>
 

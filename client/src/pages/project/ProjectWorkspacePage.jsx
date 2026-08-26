@@ -272,18 +272,43 @@ function ProjectWorkspacePage() {
         <main className="flex-1 p-6 md:p-8 space-y-6 max-w-8xl">
           {/* Project Title & Summary Header */}
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-            <div className="space-y-1">
-              <h1 className="text-2xl font-bold text-[#222222] dark:text-[#F5F5F7] tracking-tight">
-                {currentProject?.name || "My API"}
-              </h1>
+            <div className="space-y-2 max-w-3xl">
+              <div className="flex items-center gap-2.5">
+                <h1 className="text-2xl font-bold text-[#222222] dark:text-[#F5F5F7] tracking-tight">
+                  {currentProject?.name || "My API"}
+                </h1>
+                <span className="px-2 py-0.5 rounded bg-[#FAF3E1] dark:bg-[#1C1C1F] border border-[#E6D2A5] dark:border-[#2C2C2E] text-[10px] font-mono font-semibold uppercase text-[#FF6D1F]">
+                  {currentProject?.projectType || "REST"}
+                </span>
+              </div>
+
               <p className="text-xs sm:text-sm text-[#5C5C5C] dark:text-[#A1A1A6]">
                 {currentProject?.description ||
                   "Backend API development workspace"}
               </p>
+
+              {/* Base URL & Settings Badges */}
+              <div className="flex flex-wrap items-center gap-2.5 pt-1 text-[11px] text-[#5C5C5C] dark:text-[#A1A1A6]">
+                {currentProject?.baseUrl && (
+                  <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-[#FAF3E1] dark:bg-[#1C1C1F] border border-[#E6D2A5] dark:border-[#2C2C2E] font-mono">
+                    <span className="text-[#8C8C8C] dark:text-[#6E6E73]">Base URL:</span>
+                    <span className="text-[#222222] dark:text-[#F5F5F7] truncate max-w-xs">
+                      {currentProject.baseUrl}
+                    </span>
+                  </div>
+                )}
+
+                {currentProject?.settings?.defaultTimeout && (
+                  <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-[#FAF3E1] dark:bg-[#1C1C1F] border border-[#E6D2A5] dark:border-[#2C2C2E] font-mono text-[10px]">
+                    <Clock className="w-3 h-3 text-[#8C8C8C] dark:text-[#6E6E73]" />
+                    <span>{currentProject.settings.defaultTimeout}ms timeout</span>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Quick Actions (Edit, Delete, Copy ID) */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <button
                 type="button"
                 onClick={() => setIsEditOpen(true)}

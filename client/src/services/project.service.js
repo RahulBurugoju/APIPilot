@@ -1,8 +1,14 @@
 import api from "../lib/axios";
 
 const createProject = async (projectData) => {
-  const { name, description,baseUrl, projectType,settings} = projectData;
-  const response = await api.post("/projects/create", { name, description });
+  const { name, description, baseUrl, projectType, settings } = projectData;
+  const response = await api.post("/projects/create", {
+    name,
+    description,
+    baseUrl,
+    projectType,
+    settings,
+  });
   return response.data;
 };
 
