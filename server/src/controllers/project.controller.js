@@ -1,9 +1,8 @@
 import projectService from "../services/project.service.js";
-import {ApiResponse} from "../utils/ApiResponse.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-
-export const createProject = asyncHandler(async (req, res) => {
+const createProject = asyncHandler(async (req, res) => {
   const userId = req.user?.Id;
   const { name, description, baseUrl, projectType, settings } = req.body;
 
@@ -21,7 +20,7 @@ export const createProject = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, { project }, "Project created successfully"));
 });
 
-export const getUserProjects = asyncHandler(async (req, res) => {
+const getUserProjects = asyncHandler(async (req, res) => {
   const userId = req.user?.Id;
 
   const projects = await projectService.getUserProjects({ userId });
@@ -31,7 +30,7 @@ export const getUserProjects = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, { projects }, "Projects fetched successfully"));
 });
 
-export const getProject = asyncHandler(async (req, res) => {
+const getProject = asyncHandler(async (req, res) => {
   const { projectId } = req.params;
   const userId = req.user?.Id;
 
@@ -42,7 +41,7 @@ export const getProject = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, { project }, "Project fetched successfully"));
 });
 
-export const updateProject = asyncHandler(async (req, res) => {
+const updateProject = asyncHandler(async (req, res) => {
   const { projectId } = req.params;
   const { name, description, baseUrl, projectType, settings } = req.body;
   const owner = req.user?.Id;
@@ -62,15 +61,30 @@ export const updateProject = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, { project }, "Project updated successfully"));
 });
 
-export const deleteProject = asyncHandler(async(req,res)=>{
-    const userId = req.user?.Id;
-    const projectId = req.params.projectId;
+const deleteProject = asyncHandler(async (req, res) => {
+  const userId = req.user?.Id;
+  const projectId = req.params.projectId;
 
-    const project = await projectService.deleteProject({projectId,owner:userId});
+  const project = await projectService.deleteProject({
+    projectId,
+    owner: userId,
+  });
 
-    return res.status(200).json(
-        new ApiResponse(200,{projectId:project?._id},"Project deleted successfully")
-    )
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { projectId: project?._id },
+        "Project deleted successfully",
+      ),
+    );
+});
 
-    
-})
+export default {
+  createProject,
+  getUserProjects,
+  getProject,
+  updateProject,
+  deleteProject,
+};

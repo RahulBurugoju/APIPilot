@@ -2,13 +2,13 @@ import { z } from "zod";
 import mongoose from "mongoose";
 
 const objectIdValidation = z
-  .string()
-  .trim()
+  .preprocess(
+    (val) => (val === "" ? null : val),
+    z.string().trim().nullable().optional()
+  )
   .refine((val) => !val || mongoose.Types.ObjectId.isValid(val), {
     message: "Invalid parent collection ID format",
-  })
-  .nullable()
-  .optional();
+  });
 
 export const createCollectionSchema = z.object({
   name: z
@@ -26,7 +26,7 @@ export const createCollectionSchema = z.object({
 
   parent: objectIdValidation.default(null),
 
-  order: z
+  order: z.coerce
     .number({ invalid_type_error: "Order must be a number" })
     .min(0, "Order must be greater than or equal to 0")
     .optional()
@@ -49,7 +49,7 @@ export const updateCollectionSchema = z.object({
 
   parent: objectIdValidation,
 
-  order: z
+  order: z.coerce
     .number({ invalid_type_error: "Order must be a number" })
     .min(0, "Order must be greater than or equal to 0")
     .optional(),

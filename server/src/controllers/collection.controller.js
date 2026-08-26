@@ -4,7 +4,8 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 
 const createCollection = asyncHandler(async (req, res) => {
   const userId = req.user?.Id;
-  const { name, description, parent, projectId } = req.body;
+  const { projectId } = req.params;
+  const { name, description, parent, order } = req.body;
 
   const collection = await collectionService.createCollection({
     name,
@@ -12,11 +13,14 @@ const createCollection = asyncHandler(async (req, res) => {
     project: projectId,
     parent,
     order,
+    userId,
   });
 
   return res
     .status(201)
-    .json(new ApiResponse(201, {collection}, "Collection created successfully"));
+    .json(
+      new ApiResponse(201, { collection }, "Collection created successfully"),
+    );
 });
 
 const getProjectCollections = asyncHandler(async (req, res) => {
@@ -30,12 +34,12 @@ const getProjectCollections = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, {collections}, "Collections fetched successfully"));
+    .json(
+      new ApiResponse(200, { collections }, "Collections fetched successfully"),
+    );
 });
 
-
 export default {
-    createCollection,
-    getProjectCollections
-}
-
+  createCollection,
+  getProjectCollections,
+};
