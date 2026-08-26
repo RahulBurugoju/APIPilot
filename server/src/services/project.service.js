@@ -16,23 +16,43 @@ const createProject = async ({ name, description, owner }) => {
   return project;
 };
 
-const updateProject = async ({ projectId, updatePayload }) => {
-  const project = await Project.findByIdAndUpdate(projectId, updatePayload, {
-    new: true,
-    runValidators: true,
-  });
+const updateProject = async ({ projectId, owner, name, description }) => {
+  const project = await Project.findOneAndUpdate(
+    {
+      _id: projectId,
+      owner,
+    },
+    {
+      $set: {
+        name,
+        description,
+      },
+    },
+    {
+      new: true,
+      runValidators: true,
+    },
+  );
 
   if (!project) {
-    throw new ApiError(400, "failed to update project");
+    throw new ApiError(404, "Project not found");
   }
+
   return project;
 };
 
-const deleteProject = async ({ projectId }) => {
-  const project = await Project.findByIdAndDelete(projectId);
+const deleteProject = async ({ projectId,owner }) => {
+  if (!mongoose.Types.ObjectId.isValid(projectId)) {
+    throw new ApiError(400, "Invalid project ID format");
+  }
 
-  if (!project) {
-    throw new ApiError(400, "failed to delete project");
+  const project = await Project.findOneAndDelete({
+    _id: projectId,
+    owner,
+  });
+
+  if (!project) {       
+    throw new ApiError(404, "Project not found or you are not authorized to delete");
   }
   return project;
 };

@@ -39,3 +39,28 @@ export const getProject = asyncHandler(async(req,res)=>{
         new ApiResponse(200,{project},"Project fetched successfully")
     )   
 })
+
+export const updateProject = asyncHandler(async(req,res)=>{
+    const {projectId} = req.params;
+    const {name,description} = req.body;
+    const owner = req.user?.Id;
+
+    const project = await projectService.updateProject({projectId,owner,name,description})
+
+    return res.status(200).json(
+        new ApiResponse(200,{project},"Project updated successfully")
+    )
+})
+
+export const deleteProject = asyncHandler(async(req,res)=>{
+    const userId = req.user?.Id;
+    const projectId = req.params.projectId;
+
+    const project = await projectService.deleteProject({projectId,owner:userId});
+
+    return res.status(200).json(
+        new ApiResponse(200,{projectId:project?._id},"Project deleted successfully")
+    )
+
+    
+})
