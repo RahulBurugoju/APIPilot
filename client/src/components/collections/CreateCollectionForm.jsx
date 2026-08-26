@@ -3,7 +3,12 @@ import { useDispatch, useSelector } from "react-redux";
 import collectionThunk from "../../features/collection/collection.thunk";
 import { Loader2, AlertCircle, FolderPlus } from "lucide-react";
 
-function CreateCollectionForm({ projectId, onCancel, onSuccess }) {
+function CreateCollectionForm({
+  projectId,
+  onCancel,
+  onSuccess,
+  isModal = false,
+}) {
   const dispatch = useDispatch();
   const { loading, error } = useSelector((state) => state.collection);
 
@@ -68,21 +73,29 @@ function CreateCollectionForm({ projectId, onCancel, onSuccess }) {
   };
 
   return (
-    <div className="w-full p-5 rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] text-[#222222] dark:text-[#F5F5F7] shadow-sm space-y-4">
-      {/* Header */}
-      <div className="flex items-center gap-2.5">
-        <div className="w-7 h-7 rounded-md bg-[#FAF3E1] dark:bg-[#1C1C1F] border border-[#E6D2A5] dark:border-[#2C2C2E] flex items-center justify-center text-[#FF6D1F]">
-          <FolderPlus className="w-4 h-4" />
+    <div
+      className={`w-full text-[#222222] dark:text-[#F5F5F7] space-y-4 ${
+        isModal
+          ? ""
+          : "p-5 rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] shadow-sm"
+      }`}
+    >
+      {/* Header (when standalone) */}
+      {!isModal && (
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-md bg-[#FAF3E1] dark:bg-[#1C1C1F] border border-[#E6D2A5] dark:border-[#2C2C2E] flex items-center justify-center text-[#FF6D1F]">
+            <FolderPlus className="w-4 h-4" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-[#222222] dark:text-[#F5F5F7]">
+              Create Collection
+            </h3>
+            <p className="text-[11px] text-[#5C5C5C] dark:text-[#A1A1A6]">
+              Group related requests and endpoints together.
+            </p>
+          </div>
         </div>
-        <div>
-          <h3 className="text-sm font-semibold text-[#222222] dark:text-[#F5F5F7]">
-            Create Collection
-          </h3>
-          <p className="text-[11px] text-[#5C5C5C] dark:text-[#A1A1A6]">
-            Group related requests and endpoints together.
-          </p>
-        </div>
-      </div>
+      )}
 
       {/* Server Error Alert */}
       {error && (
