@@ -17,6 +17,10 @@ const createProject = async ({ name, description, owner }) => {
 };
 
 const updateProject = async ({ projectId, owner, name, description }) => {
+  if (!mongoose.Types.ObjectId.isValid(projectId)) {
+    throw new ApiError(400, "Invalid project ID format");
+  }
+
   const project = await Project.findOneAndUpdate(
     {
       _id: projectId,
