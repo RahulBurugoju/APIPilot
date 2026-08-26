@@ -36,11 +36,14 @@ const deleteProject = async ({ projectId }) => {
   return project;
 };
 
-const getCurrentProject = async ({ projectId }) => {
+const getCurrentProject = async ({ projectId,userId }) => {
   const project = await Project.findById(projectId);
 
   if (!project) {
-    throw new ApiError(400, "failed to get project");
+    throw new ApiError(404, "failed to get project");
+  }
+  if (project.owner.toString() !== userId.toString()) {
+    throw new ApiError(401, "you are not authorized to get this project");
   }
   return project;
 };
