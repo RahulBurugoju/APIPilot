@@ -8,7 +8,10 @@ const createProject = createAsyncThunk(
       const data = await projectServices.createProject(projectData);
       return data;
     } catch (error) {
-      const msg = error?.response?.data?.message || error?.message || "Something went wrong while creating project";
+      const msg =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Something went wrong while creating project";
       return rejectWithValue(msg);
     }
   },
@@ -16,34 +19,77 @@ const createProject = createAsyncThunk(
 
 const getProjects = createAsyncThunk(
   "projects/getProjects",
-  async(_, {rejectWithValue})=>{
+  async (_, { rejectWithValue }) => {
     try {
       const data = await projectServices.getProjects();
-      return data
+      return data;
     } catch (error) {
-      const msg = error?.response?.data?.message || error?.message || "Something went wrong while fetching projects";
+      const msg =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Something went wrong while fetching projects";
       return rejectWithValue(msg);
     }
-  }
-) 
+  },
+);
 
-const getProject = createAsyncThunk('projects/getProject',async({projectId},{rejectWithValue})=>{
+const getProject = createAsyncThunk(
+  "projects/getProject",
+  async ({ projectId }, { rejectWithValue }) => {
+    try {
+      const data = await projectServices.getProject({ projectId });
+      return data;
+    } catch (error) {
+      const msg =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Something went wrong while fetching project";
+      return rejectWithValue(msg);
+    }
+  },
+);
 
-  try{
+const updateProject = createAsyncThunk(
+  "projects/updateProject",
+  async ({ projectId, projectDetails }, { rejectWithValue }) => {
+    try {
+      const data = await projectServices.updateProject({
+        projectId,
+        projectDetails,
+      });
+      return data;
+    } catch (error) {
+      const msg =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Something went wrong while updating project";
+      return rejectWithValue(msg);
+    }
+  },
+);
 
-    const data = await projectServices.getProject({projectId})
-    return data;
-  }
-  catch(error){
-    const msg = error?.response?.data?.message || error?.message || "Something went wrong while fetching project";
-    return rejectWithValue(msg);
-  }
-})
+const deleteProject = createAsyncThunk(
+  "projects/deleteProject",
+  async (projectId , { rejectWithValue }) => {
+    try {
+      const data = await projectServices.deleteProject({ projectId });
+      return data;
+    } catch (error) {
+      const msg =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Something went wrong while deleting project";
+      return rejectWithValue(msg);
+    }
+  },
+);
 
 const projectThunks = {
-    createProject,
-    getProjects,
-    getProject
-}
+  createProject,
+  getProjects,
+  getProject,
+  updateProject,
+  deleteProject
+};
 
-export default projectThunks
+export default projectThunks;

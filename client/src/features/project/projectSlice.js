@@ -48,21 +48,69 @@ const projectSlice = createSlice({
       .addCase(projectThunks.getProjects.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-        state.projects = state.projects || [];  
+        state.projects = state.projects || [];
       })
-      .addCase(projectThunks.getProject.pending , (state)=>{
+      .addCase(projectThunks.getProject.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(projectThunks.getProject.fulfilled , (state , action)=>{
+      .addCase(projectThunks.getProject.fulfilled, (state, action) => {
         state.loading = false;
         state.currentProject = action.payload?.data?.project;
       })
-      .addCase(projectThunks.getProject.rejected , (state , action)=>{
+      .addCase(projectThunks.getProject.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
         state.currentProject = state.currentProject || null;
-      })  
+      })
+      .addCase(updateProject.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateProject.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(updateProject.fulfilled, (state, action) => {
+        state.loading = false;
+
+        const updatedProject = action.payload.data.project;
+
+        const index = state.projects.findIndex(
+          (project) => project._id === updatedProject._id,
+        );
+
+        if (index !== -1) {
+          state.projects[index] = updatedProject;
+        }
+
+        if (state.currentProject?._id === updatedProject._id) {
+          state.currentProject = updatedProject;
+        }
+      })
+      .addCase(deleteProject.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteProject.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+        state.currentProject = state.currentProject || null;
+      })
+      .addCase(deleteProject.fulfilled, (state, action) => {
+        state.loading = false;
+
+        const deletedProjectId =
+          action.meta.arg || action.payload?.data?.projectId;
+
+        state.projects = state.projects.filter(
+          (project) => project._id !== deletedProjectId,
+        );
+
+        if (state.currentProject?._id === deletedProjectId) {
+          state.currentProject = null;
+        }
+      });
   },
 });
 

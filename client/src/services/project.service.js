@@ -15,10 +15,24 @@ const getProject = async({projectId})=>{
   return response.data
 } 
 
+const updateProject = async({projectId,projectDetails})=>{
+    const response = await api.patch(`/projects/${projectId}`,projectDetails)
+
+    return response.data
+}
+
+const deleteProject = async({projectId})=>{
+  
+  const response = await api.delete(`/projects/${projectId}`)
+  return response.data    
+}
+
 const projectServices = {
     createProject,
     getProjects,
-    getProject
+    getProject,
+    updateProject,
+    deleteProject
 }
 
 export default projectServices
