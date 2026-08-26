@@ -70,7 +70,7 @@ const updateProject = createAsyncThunk(
 
 const deleteProject = createAsyncThunk(
   "projects/deleteProject",
-  async (projectId , { rejectWithValue }) => {
+  async (projectId, { rejectWithValue }) => {
     try {
       const data = await projectServices.deleteProject({ projectId });
       return data;
@@ -89,7 +89,7 @@ const projectThunks = {
   getProjects,
   getProject,
   updateProject,
-  deleteProject
+  deleteProject,
 };
 
 export default projectThunks;

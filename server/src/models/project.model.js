@@ -22,6 +22,33 @@ const projectSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+
+    baseUrl: {
+      type: String,
+      trim: true,
+      default: "",
+      maxlength: 500,
+    },
+
+    projectType: {
+      type: String,
+      enum: ["rest"],
+      default: "rest",
+    },
+
+    settings: {
+      autoSave: {
+        type: Boolean,
+        default: true,
+      },
+
+      defaultTimeout: {
+        type: Number,
+        default: 30000,
+        min: 1000,
+        max: 120000,
+      },
+    },
   },
   { timestamps: true },
 );

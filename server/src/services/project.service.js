@@ -2,11 +2,21 @@ import mongoose from "mongoose";
 import Project from "../models/project.model.js";
 import { ApiError } from "../utils/ApiError.js";
 
-const createProject = async ({ name, description, owner }) => {
+const createProject = async ({
+  name,
+  description,
+  owner,
+  baseUrl,
+  projectType,
+  settings,
+}) => {
   const project = await Project.create({
     name,
     description,
     owner,
+    baseUrl,
+    projectType,
+    settings,
   });
 
   if (!project) {
@@ -16,10 +26,25 @@ const createProject = async ({ name, description, owner }) => {
   return project;
 };
 
-const updateProject = async ({ projectId, owner, name, description }) => {
+const updateProject = async ({
+  projectId,
+  owner,
+  name,
+  description,
+  baseUrl,
+  projectType,
+  settings,
+}) => {
   if (!mongoose.Types.ObjectId.isValid(projectId)) {
     throw new ApiError(400, "Invalid project ID format");
   }
+
+  const updateFields = {};
+  if (name !== undefined) updateFields.name = name;
+  if (description !== undefined) updateFields.description = description;
+  if (baseUrl !== undefined) updateFields.baseUrl = baseUrl;
+  if (projectType !== undefined) updateFields.projectType = projectType;
+  if (settings !== undefined) updateFields.settings = settings;
 
   const project = await Project.findOneAndUpdate(
     {
@@ -27,10 +52,7 @@ const updateProject = async ({ projectId, owner, name, description }) => {
       owner,
     },
     {
-      $set: {
-        name,
-        description,
-      },
+      $set: updateFields,
     },
     {
       new: true,
