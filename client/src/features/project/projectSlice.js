@@ -63,51 +63,50 @@ const projectSlice = createSlice({
         state.error = action.payload;
         state.currentProject = state.currentProject || null;
       })
-      .addCase(updateProject.pending, (state) => {
+      .addCase(projectThunks.updateProject.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(updateProject.rejected, (state, action) => {
+      .addCase(projectThunks.updateProject.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
-      .addCase(updateProject.fulfilled, (state, action) => {
+      .addCase(projectThunks.updateProject.fulfilled, (state, action) => {
         state.loading = false;
-
-        const updatedProject = action.payload.data.project;
-
-        const index = state.projects.findIndex(
-          (project) => project._id === updatedProject._id,
-        );
-
-        if (index !== -1) {
-          state.projects[index] = updatedProject;
-        }
-
-        if (state.currentProject?._id === updatedProject._id) {
-          state.currentProject = updatedProject;
+        const updatedProject = action.payload?.data?.project;
+        if (updatedProject) {
+          const index = state.projects.findIndex(
+            (project) => project._id === updatedProject._id
+          );
+          if (index !== -1) {
+            state.projects[index] = updatedProject;
+          }
+          if (state.currentProject?._id === updatedProject._id) {
+            state.currentProject = updatedProject;
+          }
         }
       })
-      .addCase(deleteProject.pending, (state) => {
+      .addCase(projectThunks.deleteProject.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(deleteProject.rejected, (state, action) => {
+      .addCase(projectThunks.deleteProject.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-        state.currentProject = state.currentProject || null;
       })
-      .addCase(deleteProject.fulfilled, (state, action) => {
+      .addCase(projectThunks.deleteProject.fulfilled, (state, action) => {
         state.loading = false;
-
-        const deletedProjectId =
-          action.meta.arg || action.payload?.data?.projectId;
+        const deletedId =
+          action.payload?.data?.projectId ||
+          (typeof action.meta.arg === "object"
+            ? action.meta.arg.projectId
+            : action.meta.arg);
 
         state.projects = state.projects.filter(
-          (project) => project._id !== deletedProjectId,
+          (project) => project._id !== deletedId
         );
 
-        if (state.currentProject?._id === deletedProjectId) {
+        if (state.currentProject?._id === deletedId) {
           state.currentProject = null;
         }
       });

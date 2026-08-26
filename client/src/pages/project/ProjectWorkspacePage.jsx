@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import projectThunks from "../../features/project/project.thunk";
 import ThemeToggle from "../../components/common/ThemeToggle";
+import EditProjectModal from "../../components/projects/EditProjectModal";
+import DeleteProjectModal from "../../components/projects/DeleteProjectModal";
 import {
   ArrowLeft,
   Folder,
@@ -15,6 +17,8 @@ import {
   Sliders,
   Layers,
   Code,
+  Edit2,
+  Trash2,
 } from "lucide-react";
 
 function ProjectWorkspacePage() {
@@ -27,6 +31,10 @@ function ProjectWorkspacePage() {
   );
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState("endpoints");
+
+  // Modal Visibility States
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   useEffect(() => {
     if (projectId) {
@@ -162,28 +170,52 @@ function ProjectWorkspacePage() {
               </p>
             </div>
 
-            {/* Metadata Badges */}
-            <div className="flex flex-wrap sm:flex-col items-start sm:items-end gap-2 text-[11px] text-[#8C8C8C] dark:text-[#6E6E73] font-mono shrink-0">
-              <div className="flex items-center gap-1.5">
-                <Clock className="w-3 h-3" />
-                <span>Updated {formattedDate}</span>
-              </div>
-
-              {currentProject?._id && (
+            {/* Right: Actions & Metadata */}
+            <div className="flex flex-col sm:items-end gap-3 shrink-0">
+              {/* Edit & Delete Action Buttons */}
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={handleCopyId}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#FAF3E1] dark:bg-[#1C1C1F] border border-[#E6D2A5] dark:border-[#2C2C2E] text-[#5C5C5C] dark:text-[#A1A1A6] hover:text-[#222222] dark:hover:text-[#F5F5F7] transition-colors cursor-pointer"
-                  title="Copy Project ID"
+                  onClick={() => setIsEditOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#FFFFFF] dark:bg-[#1C1C1F] hover:bg-[#F5E7C6] dark:hover:bg-[#2C2C2E] text-[#222222] dark:text-[#F5F5F7] border border-[#E6D2A5] dark:border-[#2C2C2E] text-xs font-medium transition-colors cursor-pointer"
                 >
-                  <span>ID: {currentProject._id.slice(-6)}</span>
-                  {copied ? (
-                    <Check className="w-3 h-3 text-[#FF6D1F]" />
-                  ) : (
-                    <Copy className="w-3 h-3" />
-                  )}
+                  <Edit2 className="w-3.5 h-3.5 text-[#5C5C5C] dark:text-[#A1A1A6]" />
+                  <span>Edit Project</span>
                 </button>
-              )}
+
+                <button
+                  type="button"
+                  onClick={() => setIsDeleteModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#FFFFFF] dark:bg-[#1C1C1F] hover:bg-[#FEE2E2] dark:hover:bg-[#2A1517] text-[#DC2626] dark:text-[#F87171] border border-[#FCA5A5] dark:border-[#481E24] text-xs font-medium transition-colors cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete Project</span>
+                </button>
+              </div>
+
+              {/* Metadata Badges */}
+              <div className="flex items-center gap-2.5 text-[11px] text-[#8C8C8C] dark:text-[#6E6E73] font-mono">
+                <div className="flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  <span>Updated {formattedDate}</span>
+                </div>
+
+                {currentProject?._id && (
+                  <button
+                    type="button"
+                    onClick={handleCopyId}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#FAF3E1] dark:bg-[#1C1C1F] border border-[#E6D2A5] dark:border-[#2C2C2E] text-[#5C5C5C] dark:text-[#A1A1A6] hover:text-[#222222] dark:hover:text-[#F5F5F7] transition-colors cursor-pointer"
+                    title="Copy Project ID"
+                  >
+                    <span>ID: {currentProject._id.slice(-6)}</span>
+                    {copied ? (
+                      <Check className="w-3 h-3 text-[#FF6D1F]" />
+                    ) : (
+                      <Copy className="w-3 h-3" />
+                    )}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -282,6 +314,21 @@ function ProjectWorkspacePage() {
           </div>
         )}
       </main>
+
+      {/* ---------------------------------------------------- */}
+      {/* EXTRACTED EDIT & DELETE MODALS */}
+      {/* ---------------------------------------------------- */}
+      <EditProjectModal
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+      />
+
+      <DeleteProjectModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        project={currentProject}
+        onDeleted={() => navigate("/dashboard")}
+      />
     </div>
   );
 }
