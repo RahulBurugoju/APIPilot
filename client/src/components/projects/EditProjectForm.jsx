@@ -290,24 +290,49 @@ function EditProjectForm({ onCancel, onSuccess }) {
           )}
         </div>
 
-        {/* AutoSave Toggle */}
-        <div className="flex items-center justify-between py-1">
-          <div>
-            <span className="block text-xs font-medium text-[#222222] dark:text-[#F5F5F7]">
-              Auto-save Requests
-            </span>
-            <span className="text-[11px] text-[#5C5C5C] dark:text-[#A1A1A6]">
-              Save endpoint draft edits automatically
-            </span>
+        {/* AutoSave Setting with ON/OFF Indicator */}
+        <div className="p-3 rounded-lg bg-[#FAF3E1]/60 dark:bg-[#101012] border border-[#E6D2A5] dark:border-[#2C2C2E] flex items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-[#222222] dark:text-[#F5F5F7]">
+                Auto-save Requests
+              </span>
+              <span
+                className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold transition-colors ${
+                  autoSave
+                    ? "bg-[#ECFDF5] dark:bg-[#062417] text-[#059669] dark:text-[#00E599] border border-[#A7F3D0] dark:border-[#104D30]"
+                    : "bg-[#F3F4F6] dark:bg-[#1C1C1F] text-[#6B7280] dark:text-[#8E8E93] border border-[#E5E7EB] dark:border-[#2C2C2E]"
+                }`}
+              >
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    autoSave ? "bg-[#059669] dark:bg-[#00E599] animate-pulse" : "bg-[#9CA3AF]"
+                  }`}
+                />
+                {autoSave ? "ON" : "OFF"}
+              </span>
+            </div>
+            <p className="text-[11px] text-[#5C5C5C] dark:text-[#A1A1A6]">
+              {autoSave
+                ? "Draft changes to endpoint parameters and bodies will save automatically."
+                : "Manual save required before navigating away from requests."}
+            </p>
           </div>
-          <input
-            type="checkbox"
-            id="edit-project-autosave"
-            name="autoSave"
-            checked={autoSave}
-            onChange={handleOnChange}
-            className="w-4 h-4 accent-[#FF6D1F] rounded cursor-pointer"
-          />
+
+          <label
+            htmlFor="edit-project-autosave"
+            className="relative inline-flex items-center cursor-pointer shrink-0"
+          >
+            <input
+              type="checkbox"
+              id="edit-project-autosave"
+              name="autoSave"
+              checked={autoSave}
+              onChange={handleOnChange}
+              className="sr-only peer"
+            />
+            <div className="w-9 h-5 bg-[#D1D5DB] dark:bg-[#2C2C2E] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#FF6D1F]"></div>
+          </label>
         </div>
       </div>
 

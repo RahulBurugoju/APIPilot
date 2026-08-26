@@ -298,12 +298,31 @@ function ProjectWorkspacePage() {
                   </div>
                 )}
 
-                {currentProject?.settings?.defaultTimeout && (
-                  <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-[#FAF3E1] dark:bg-[#1C1C1F] border border-[#E6D2A5] dark:border-[#2C2C2E] font-mono text-[10px]">
-                    <Clock className="w-3 h-3 text-[#8C8C8C] dark:text-[#6E6E73]" />
-                    <span>{currentProject.settings.defaultTimeout}ms timeout</span>
-                  </div>
-                )}
+                {/* AutoSave Indicator */}
+                <div
+                  className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded border font-mono text-[10px] ${
+                    currentProject?.settings?.autoSave ?? true
+                      ? "bg-[#ECFDF5] dark:bg-[#062417] text-[#059669] dark:text-[#00E599] border-[#A7F3D0] dark:border-[#104D30]"
+                      : "bg-[#F3F4F6] dark:bg-[#1C1C1F] text-[#6B7280] dark:text-[#8E8E93] border-[#E5E7EB] dark:border-[#2C2C2E]"
+                  }`}
+                  title={
+                    currentProject?.settings?.autoSave ?? true
+                      ? "Auto-save is enabled"
+                      : "Auto-save is disabled"
+                  }
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      (currentProject?.settings?.autoSave ?? true)
+                        ? "bg-[#059669] dark:bg-[#00E599] animate-pulse"
+                        : "bg-[#9CA3AF]"
+                    }`}
+                  />
+                  <span>
+                    Auto-save:{" "}
+                    {(currentProject?.settings?.autoSave ?? true) ? "ON" : "OFF"}
+                  </span>
+                </div>
               </div>
             </div>
 
