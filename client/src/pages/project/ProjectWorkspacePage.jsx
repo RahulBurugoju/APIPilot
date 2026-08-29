@@ -9,6 +9,7 @@ import DeleteProjectModal from "../../components/projects/DeleteProjectModal";
 import CreateCollectionModal from "../../components/collections/CreateCollectionModal";
 import DeleteCollectionModal from "../../components/collections/DeleteCollectionModal";
 import CreateRequestModal from "../../components/requests/CreateRequestModal";
+import RequestList from "../../components/requests/RequestList";
 import requestThunk from "../../features/request/request.Thunk.js";
 import CollectionList from "../../components/collections/CollectionList";
 import WorkspaceExplorer from "../../components/workspace/WorkspaceExplorer";
@@ -379,16 +380,73 @@ function ProjectWorkspacePage() {
                 loading={collectionsLoading}
                 onCreateClick={() => setIsCreateCollectionModalOpen(true)}
               />
+
+              <hr className="border-[#E6D2A5] dark:border-[#1F1F23]" />
+
+              {/* Request List Component (Spec 02.8.15) */}
+              <RequestList
+                collectionName={
+                  selectedCollection?.name || "All Workspace Requests"
+                }
+                requests={
+                  selectedCollection
+                    ? (requests || []).filter(
+                        (r) =>
+                          r.collection &&
+                          String(r.collection) === String(selectedCollection._id)
+                      )
+                    : requests || []
+                }
+                selectedRequestId={selectedRequest?._id}
+                onSelectRequest={(req) => {
+                  setSelectedRequest(req);
+                  setActiveView("request");
+                }}
+                onCreateRequestClick={() => {
+                  setTargetCollectionForRequest(
+                    selectedCollection || collections?.[0] || null
+                  );
+                  setIsCreateRequestModalOpen(true);
+                }}
+              />
             </div>
           )}
 
-          {/* 3. Collections View (Only Displays Collection List) */}
+          {/* 3. Collections View (Displays Collections and Request List) */}
           {activeView === "collections" && (
             <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 max-w-5xl">
               <CollectionList
                 collections={collections || []}
                 loading={collectionsLoading}
                 onCreateClick={() => setIsCreateCollectionModalOpen(true)}
+              />
+
+              <hr className="border-[#E6D2A5] dark:border-[#1F1F23]" />
+
+              <RequestList
+                collectionName={
+                  selectedCollection?.name || "All Requests"
+                }
+                requests={
+                  selectedCollection
+                    ? (requests || []).filter(
+                        (r) =>
+                          r.collection &&
+                          String(r.collection) === String(selectedCollection._id)
+                      )
+                    : requests || []
+                }
+                selectedRequestId={selectedRequest?._id}
+                onSelectRequest={(req) => {
+                  setSelectedRequest(req);
+                  setActiveView("request");
+                }}
+                onCreateRequestClick={() => {
+                  setTargetCollectionForRequest(
+                    selectedCollection || collections?.[0] || null
+                  );
+                  setIsCreateRequestModalOpen(true);
+                }}
               />
             </div>
           )}
