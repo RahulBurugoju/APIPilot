@@ -16,7 +16,18 @@ const requestSlice = createSlice({
             state.error = null;
         },
         setCurrentRequest: (state, action) => {
-            state.currentRequest = action.payload;
+            if (!action.payload) {
+                state.currentRequest = null;
+                return;
+            }
+            if (typeof action.payload === "string") {
+                const found = state.requests.find(
+                    (r) => String(r._id) === String(action.payload)
+                );
+                state.currentRequest = found || null;
+            } else {
+                state.currentRequest = action.payload;
+            }
         },
         clearCurrentRequest: (state) => {
             state.currentRequest = null;
@@ -77,7 +88,12 @@ const requestSlice = createSlice({
                     if (!Array.isArray(state.requests)) {
                         state.requests = [];
                     }
-                    state.requests.push(newReq);
+                    const exists = state.requests.some(
+                        (r) => String(r._id) === String(newReq._id)
+                    );
+                    if (!exists) {
+                        state.requests.push(newReq);
+                    }
                 }
             })
             .addCase(requestThunk.createRequest.rejected, (state, action) => {
@@ -93,7 +109,24 @@ const requestSlice = createSlice({
             .addCase(requestThunk.getCollectionRequests.fulfilled, (state, action) => {
                 state.loading = false;
                 state.error = null;
-                state.requests = action.payload?.data?.requests || [];
+                const fetched = action.payload?.data?.requests || [];
+                if (!Array.isArray(state.requests)) {
+                    state.requests = [];
+                }
+                const fetchedIds = new Set(fetched.map((r) => String(r._id)));
+                const remaining = state.requests.filter(
+                    (r) => !fetchedIds.has(String(r._id))
+                );
+                state.requests = [...remaining, ...fetched];
+
+                if (state.currentRequest) {
+                    const matched = fetched.find(
+                        (r) => String(r._id) === String(state.currentRequest._id)
+                    );
+                    if (matched) {
+                        state.currentRequest = matched;
+                    }
+                }
             })
             .addCase(requestThunk.getCollectionRequests.rejected, (state, action) => {
                 state.loading = false;

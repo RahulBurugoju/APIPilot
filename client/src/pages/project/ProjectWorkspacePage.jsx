@@ -11,6 +11,7 @@ import DeleteCollectionModal from "../../components/collections/DeleteCollection
 import CreateRequestModal from "../../components/requests/CreateRequestModal";
 import RequestList from "../../components/requests/RequestList";
 import requestThunk from "../../features/request/request.Thunk.js";
+import { setCurrentRequest, clearCurrentRequest } from "../../features/request/requestSlice.js";
 import CollectionList from "../../components/collections/CollectionList";
 import WorkspaceExplorer from "../../components/workspace/WorkspaceExplorer";
 import RequestCenter from "../../components/workspace/RequestCenter";
@@ -57,8 +58,12 @@ function ProjectWorkspacePage() {
   const [copied, setCopied] = useState(false);
   const [activeView, setActiveView] = useState("request"); // 'request' | 'overview' | 'collections' | 'environments' | 'history'
   const [selectedCollection, setSelectedCollection] = useState(null);
-  const [selectedRequest, setSelectedRequest] = useState(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+
+  const handleSelectRequest = (req) => {
+    dispatch(setCurrentRequest(req));
+    setActiveView("request");
+  };
 
   // Modal / Form Visibility States
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -300,11 +305,8 @@ function ProjectWorkspacePage() {
           onSelectView={(view) => setActiveView(view)}
           selectedCollection={selectedCollection}
           onSelectCollection={(col) => setSelectedCollection(col)}
-          selectedRequest={selectedRequest || currentRequest}
-          onSelectRequest={(req) => {
-            setSelectedRequest(req);
-            setActiveView("request");
-          }}
+          selectedRequest={currentRequest}
+          onSelectRequest={handleSelectRequest}
           onNewRequest={(targetCol) => {
             setTargetCollectionForRequest(
               targetCol || selectedCollection || collections?.[0] || null
@@ -330,15 +332,14 @@ function ProjectWorkspacePage() {
           {/* 1. Request Center (Default Postman API Runner) */}
           {activeView === "request" && (
             <RequestCenter
+              key={currentRequest?._id || "none"}
               project={currentProject}
-              request={selectedRequest}
+              request={currentRequest}
               onNewRequest={() => {
-                setSelectedRequest({
-                  id: `req-${Date.now()}`,
-                  name: "New Request",
-                  method: "GET",
-                  path: "/api/v1",
-                });
+                setTargetCollectionForRequest(
+                  selectedCollection || collections?.[0] || null
+                );
+                setIsCreateRequestModalOpen(true);
               }}
             />
           )}
@@ -397,11 +398,8 @@ function ProjectWorkspacePage() {
                       )
                     : requests || []
                 }
-                selectedRequestId={selectedRequest?._id}
-                onSelectRequest={(req) => {
-                  setSelectedRequest(req);
-                  setActiveView("request");
-                }}
+                selectedRequestId={currentRequest?._id}
+                onSelectRequest={handleSelectRequest}
                 onCreateRequestClick={() => {
                   setTargetCollectionForRequest(
                     selectedCollection || collections?.[0] || null
@@ -436,11 +434,8 @@ function ProjectWorkspacePage() {
                       )
                     : requests || []
                 }
-                selectedRequestId={selectedRequest?._id}
-                onSelectRequest={(req) => {
-                  setSelectedRequest(req);
-                  setActiveView("request");
-                }}
+                selectedRequestId={currentRequest?._id}
+                onSelectRequest={handleSelectRequest}
                 onCreateRequestClick={() => {
                   setTargetCollectionForRequest(
                     selectedCollection || collections?.[0] || null
