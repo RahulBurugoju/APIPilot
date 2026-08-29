@@ -5,7 +5,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 const createRequest = asyncHandler(async (req, res) => {
   const { projectId, collectionId } = req.params;
 
-  const { name, method, url, headers, queryParams, body, order } = req.body;
+  const { name, method, url, headers, queryParams, body, auth, order } = req.body;
 
   const request = await requestService.createRequest({
     name,
@@ -14,6 +14,7 @@ const createRequest = asyncHandler(async (req, res) => {
     headers,
     queryParams,
     body,
+    auth,
     order,
     collectionId: collectionId || req.body.collection,
   });
@@ -48,7 +49,7 @@ const getRequest = asyncHandler(async (req, res) => {
 
 const updateRequest = asyncHandler(async (req, res) => {
   const { projectId, collectionId, requestId } = req.params;
-  const { name, method, url, headers, queryParams, body, order } = req.body;
+  const { name, method, url, headers, queryParams, body, auth, order } = req.body;
 
   const request = await requestService.updateRequest({
     requestId,
@@ -59,6 +60,7 @@ const updateRequest = asyncHandler(async (req, res) => {
     headers,
     queryParams,
     body,
+    auth,
     order,
   });
 

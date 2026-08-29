@@ -57,7 +57,7 @@ const requestSchema = new mongoose.Schema({
                 key: {
                     type: String,
                     trim: true,
-                    
+
                 },
                 value: {
                     type: String,
@@ -91,57 +91,57 @@ const requestSchema = new mongoose.Schema({
         },
     },
     auth: {
-  type: {
-    type: String,
-    enum: [
-      "none",
-      "bearer",
-      "basic",
-      "api-key",
-    ],
-    default: "none",
-  },
+        type: {
+            type: String,
+            enum: [
+                "none",
+                "bearer",
+                "basic",
+                "api-key",
+            ],
+            default: "none",
+        },
 
-  bearer: {
-    token: {
-      type: String,
-      default: "",
-    },
-  },
+        bearer: {
+            token: {
+                type: String,
+                default: "",
+            },
+        },
 
-  basic: {
-    username: {
-      type: String,
-      default: "",
-    },
+        basic: {
+            username: {
+                type: String,
+                default: "",
+            },
 
-    password: {
-      type: String,
-      default: "",
-    },
-  },
+            password: {
+                type: String,
+                default: "",
+            },
+        },
 
-  apiKey: {
-    key: {
-      type: String,
-      default: "",
-    },
+        apiKey: {
+            key: {
+                type: String,
+                default: "",
+            },
 
-    value: {
-      type: String,
-      default: "",
-    },
+            value: {
+                type: String,
+                default: "",
+            },
 
-    location: {
-      type: String,
-      enum: [
-        "header",
-        "query",
-      ],
-      default: "header",
+            location: {
+                type: String,
+                enum: [
+                    "header",
+                    "query",
+                ],
+                default: "header",
+            },
+        },
     },
-  },
-},
     order: {
         type: Number,
         default: 0,

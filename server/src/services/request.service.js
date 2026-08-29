@@ -9,6 +9,7 @@ const createRequest = async ({
   headers,
   queryParams,
   body,
+  auth,
   order,
 }) => {
   const request = await Request.create({
@@ -19,6 +20,12 @@ const createRequest = async ({
     headers: headers || [],
     queryParams: queryParams || [],
     body: body || { type: "none", content: "" },
+    auth: auth || {
+      type: "none",
+      bearer: { token: "" },
+      basic: { username: "", password: "" },
+      apiKey: { key: "", value: "", location: "header" },
+    },
     order: order ?? 0,
   });
 
@@ -41,12 +48,15 @@ const getRequest = async ({ requestId, collectionId }) => {
   const request = await Request.findOne({
     _id: requestId,
     collection: collectionId,
-  });
+  }).populate(
+    "collection",
+    "name parent project"
+  );
 
   if (!request) {
     throw new ApiError(404, "Request not found");
   }
-
+  
   return request;
 };
 
@@ -59,6 +69,7 @@ const updateRequest = async ({
   headers,
   queryParams,
   body,
+  auth,
   order,
 }) => {
   const updateFields = {};
@@ -69,6 +80,7 @@ const updateRequest = async ({
   if (headers !== undefined) updateFields.headers = headers;
   if (queryParams !== undefined) updateFields.queryParams = queryParams;
   if (body !== undefined) updateFields.body = body;
+  if (auth !== undefined) updateFields.auth = auth;
   if (order !== undefined) updateFields.order = order;
 
   const request = await Request.findOneAndUpdate(

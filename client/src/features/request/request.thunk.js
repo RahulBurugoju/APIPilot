@@ -69,6 +69,24 @@ const updateRequest = createAsyncThunk(
   }
 );
 
+const updateRequestAuth = createAsyncThunk(
+  "request/updateRequestAuth",
+  async ({ projectId, collectionId, requestId, auth }, thunkAPI) => {
+    try {
+      const response = await requestService.updateRequestAuth({
+        projectId,
+        collectionId,
+        requestId,
+        auth,
+      });
+      return response;
+    } catch (error) {
+      const msg = error?.response?.data?.message || error?.message;
+      return thunkAPI.rejectWithValue(msg || "Failed to update request auth");
+    }
+  }
+);
+
 const deleteRequest = createAsyncThunk(
   "request/deleteRequest",
   async ({ projectId, collectionId, requestId }, thunkAPI) => {
@@ -91,5 +109,6 @@ export default {
   getCollectionRequests,
   getRequest,
   updateRequest,
+  updateRequestAuth,
   deleteRequest,
 };

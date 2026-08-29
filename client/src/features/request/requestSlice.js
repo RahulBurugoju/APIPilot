@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import requestThunk from "./request.Thunk";
+import requestThunk from "./request.Thunk.js";
 
 const initialState = {
     requests: [],
@@ -20,6 +20,45 @@ const requestSlice = createSlice({
         },
         clearCurrentRequest: (state) => {
             state.currentRequest = null;
+        },
+        setCurrentRequestAuth: (state, action) => {
+            if (state.currentRequest) {
+                state.currentRequest.auth = action.payload;
+            }
+        },
+        updateCurrentRequestAuthField: (state, action) => {
+            const { authType, field, value } = action.payload || {};
+            if (!state.currentRequest) return;
+            if (!state.currentRequest.auth) {
+                state.currentRequest.auth = {
+                    type: "none",
+                    bearer: { token: "" },
+                    basic: { username: "", password: "" },
+                    apiKey: { key: "", value: "", location: "header" },
+                };
+            }
+            if (authType) {
+                state.currentRequest.auth.type = authType;
+            }
+            if (field !== undefined && value !== undefined) {
+                const currentType = authType || state.currentRequest.auth.type;
+                if (currentType === "bearer") {
+                    state.currentRequest.auth.bearer = {
+                        ...state.currentRequest.auth.bearer,
+                        [field]: value,
+                    };
+                } else if (currentType === "basic") {
+                    state.currentRequest.auth.basic = {
+                        ...state.currentRequest.auth.basic,
+                        [field]: value,
+                    };
+                } else if (currentType === "api-key") {
+                    state.currentRequest.auth.apiKey = {
+                        ...state.currentRequest.auth.apiKey,
+                        [field]: value,
+                    };
+                }
+            }
         },
     },
     extraReducers: (builder) => {
@@ -107,6 +146,34 @@ const requestSlice = createSlice({
                 state.error = action.payload;
             })
 
+            // Update Request Auth
+            .addCase(requestThunk.updateRequestAuth.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(requestThunk.updateRequestAuth.fulfilled, (state, action) => {
+                state.loading = false;
+                state.error = null;
+                const updated =
+                    action.payload?.data?.updatedRequest || action.payload?.data?.request;
+                if (updated) {
+                    const targetId = String(updated._id);
+                    state.currentRequest = updated;
+                    if (Array.isArray(state.requests)) {
+                        const index = state.requests.findIndex(
+                            (req) => String(req._id) === targetId
+                        );
+                        if (index !== -1) {
+                            state.requests[index] = updated;
+                        }
+                    }
+                }
+            })
+            .addCase(requestThunk.updateRequestAuth.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+
             // Delete Request
             .addCase(requestThunk.deleteRequest.pending, (state) => {
                 state.loading = true;
@@ -137,7 +204,12 @@ const requestSlice = createSlice({
     },
 });
 
-export const { clearRequestError, setCurrentRequest, clearCurrentRequest } =
-    requestSlice.actions;
+export const {
+    clearRequestError,
+    setCurrentRequest,
+    clearCurrentRequest,
+    setCurrentRequestAuth,
+    updateCurrentRequestAuthField,
+} = requestSlice.actions;
 
 export default requestSlice.reducer;

@@ -39,6 +39,21 @@ const updateRequest = async ({
   return response.data;
 };
 
+const updateRequestAuth = async ({
+  projectId,
+  collectionId,
+  requestId,
+  auth,
+}) => {
+  const response = await api.patch(
+    `/projects/${projectId}/collections/${collectionId}/requests/${requestId}`,
+    {
+      auth,
+    }
+  );
+  return response.data;
+};
+
 const deleteRequest = async ({ projectId, collectionId, requestId }) => {
   const response = await api.delete(
     `/projects/${projectId}/collections/${collectionId}/requests/${requestId}`
@@ -51,5 +66,6 @@ export default {
   getCollectionRequests,
   getRequest,
   updateRequest,
+  updateRequestAuth,
   deleteRequest,
 };

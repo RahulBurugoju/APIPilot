@@ -87,6 +87,81 @@ const requestBodySchema = z.preprocess(
     .default({ type: "none", content: "" })
 );
 
+const parseAuthPreprocess = (val) => {
+  if (val === null || val === undefined) {
+    return {
+      type: "none",
+      bearer: { token: "" },
+      basic: { username: "", password: "" },
+      apiKey: { key: "", value: "", location: "header" },
+    };
+  }
+  if (typeof val === "string") {
+    try {
+      const parsed = JSON.parse(val);
+      if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) {
+        return parsed;
+      }
+    } catch {
+      // Fall through if not stringified JSON object
+    }
+  }
+  return val;
+};
+
+const requestAuthSchema = z.preprocess(
+  parseAuthPreprocess,
+  z
+    .object({
+      type: z
+        .enum(["none", "bearer", "basic", "api-key"], {
+          errorMap: () => ({
+            message: "Auth type must be one of none, bearer, basic, or api-key",
+          }),
+        })
+        .optional()
+        .default("none"),
+
+      bearer: z
+        .object({
+          token: z.string().optional().default(""),
+        })
+        .optional()
+        .default({ token: "" }),
+
+      basic: z
+        .object({
+          username: z.string().optional().default(""),
+          password: z.string().optional().default(""),
+        })
+        .optional()
+        .default({ username: "", password: "" }),
+
+      apiKey: z
+        .object({
+          key: z.string().optional().default(""),
+          value: z.string().optional().default(""),
+          location: z
+            .enum(["header", "query"], {
+              errorMap: () => ({
+                message: "API key location must be header or query",
+              }),
+            })
+            .optional()
+            .default("header"),
+        })
+        .optional()
+        .default({ key: "", value: "", location: "header" }),
+    })
+    .optional()
+    .default({
+      type: "none",
+      bearer: { token: "" },
+      basic: { username: "", password: "" },
+      apiKey: { key: "", value: "", location: "header" },
+    })
+);
+
 export const createRequestSchema = z.object({
   name: z
     .string({ required_error: "Request name is required" })
@@ -110,6 +185,8 @@ export const createRequestSchema = z.object({
   queryParams: arrayOrJsonString([]),
 
   body: requestBodySchema,
+
+  auth: requestAuthSchema,
 
   order: z.coerce
     .number({ invalid_type_error: "Order must be a number" })
@@ -141,6 +218,8 @@ export const updateRequestSchema = z.object({
   queryParams: z.preprocess(parseArrayPreprocess, z.array(keyValuePairSchema).optional()),
 
   body: requestBodySchema,
+
+  auth: requestAuthSchema,
 
   order: z.coerce
     .number({ invalid_type_error: "Order must be a number" })
