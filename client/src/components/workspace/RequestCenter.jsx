@@ -15,12 +15,15 @@ import {
   clearCurrentRequest,
   setCurrentRequestUrl,
   setCurrentRequestQueryParams,
+  setCurrentRequestAuth,
 } from "../../features/request/requestSlice.js";
 import requestThunk from "../../features/request/request.Thunk.js";
 import RequestHeader from "../requestBuilder/RequestHeader.jsx";
 import RequestTabs from "../requestBuilder/RequestTabs.jsx";
 import ParamsEditor from "../requestBuilder/ParamsEditor.jsx";
 import HeadersEditor from "../requestBuilder/HeadersEditor.jsx";
+import BodyEditor from "../requestBuilder/BodyEditor.jsx";
+import AuthEditor from "../requestBuilder/AuthEditor.jsx";
 
 function RequestCenter({ project, request, onNewRequest }) {
   const dispatch = useDispatch();
@@ -260,217 +263,23 @@ function RequestCenter({ project, request, onNewRequest }) {
 
             {/* BODY TAB */}
             {activeReqTab === "body" && (
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 text-xs">
-                  <span className="text-[#8C8C8C] dark:text-[#6E6E73] font-mono">
-                    Body Type:
-                  </span>
-                  {["none", "json", "text", "form-data", "urlencoded"].map((t) => (
-                    <label
-                      key={t}
-                      className="inline-flex items-center gap-1 cursor-pointer font-mono text-xs"
-                    >
-                      <input
-                        type="radio"
-                        name="bodyType"
-                        value={t}
-                        checked={bodyType === t}
-                        onChange={(e) => setBodyType(e.target.value)}
-                        className="text-[#FF6D1F] focus:ring-[#FF6D1F]"
-                      />
-                      <span
-                        className={
-                          bodyType === t
-                            ? "text-[#FF6D1F] font-bold"
-                            : "text-[#5C5C5C] dark:text-[#A1A1A6]"
-                        }
-                      >
-                        {t}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-
-                {bodyType !== "none" ? (
-                  <textarea
-                    rows={6}
-                    value={requestBody}
-                    onChange={(e) => setRequestBody(e.target.value)}
-                    placeholder={
-                      bodyType === "json"
-                        ? '{\n  "key": "value"\n}'
-                        : "Enter request payload..."
-                    }
-                    className="w-full p-3 rounded-md bg-[#FAF3E1]/40 dark:bg-[#0B0B0D] border border-[#E6D2A5]/60 dark:border-[#2C2C2E] text-xs font-mono text-[#222222] dark:text-[#F5F5F7] focus:outline-none focus:border-[#FF6D1F] transition-colors resize-none leading-relaxed"
-                  />
-                ) : (
-                  <div className="p-6 text-center text-xs text-[#8C8C8C] dark:text-[#6E6E73] font-mono">
-                    This request does not have a body.
-                  </div>
-                )}
-              </div>
+              <BodyEditor
+                bodyType={bodyType}
+                bodyContent={requestBody}
+                onBodyTypeChange={setBodyType}
+                onBodyContentChange={setRequestBody}
+              />
             )}
 
             {/* AUTH TAB */}
             {activeReqTab === "auth" && (
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 text-xs">
-                  <span className="text-[#8C8C8C] dark:text-[#6E6E73] font-mono">
-                    Auth Type:
-                  </span>
-                  {["none", "bearer", "basic", "api-key"].map((t) => (
-                    <label
-                      key={t}
-                      className="inline-flex items-center gap-1 cursor-pointer font-mono text-xs"
-                    >
-                      <input
-                        type="radio"
-                        name="authType"
-                        value={t}
-                        checked={(auth?.type || "none") === t}
-                        onChange={(e) =>
-                          setAuth({ ...auth, type: e.target.value })
-                        }
-                        className="text-[#FF6D1F] focus:ring-[#FF6D1F]"
-                      />
-                      <span
-                        className={
-                          (auth?.type || "none") === t
-                            ? "text-[#FF6D1F] font-bold"
-                            : "text-[#5C5C5C] dark:text-[#A1A1A6]"
-                        }
-                      >
-                        {t}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-
-                {auth?.type === "bearer" && (
-                  <div className="space-y-1.5 max-w-lg">
-                    <label className="block text-xs font-medium text-[#222222] dark:text-[#F5F5F7]">
-                      Bearer Token
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="eyJhbGciOi..."
-                      value={auth.bearer?.token || ""}
-                      onChange={(e) =>
-                        setAuth({
-                          ...auth,
-                          bearer: { ...auth.bearer, token: e.target.value },
-                        })
-                      }
-                      className="w-full px-3 py-2 rounded-md bg-[#FAF3E1]/40 dark:bg-[#0B0B0D] border border-[#E6D2A5]/60 dark:border-[#2C2C2E] text-xs font-mono text-[#222222] dark:text-[#F5F5F7] focus:outline-none focus:border-[#FF6D1F]"
-                    />
-                  </div>
-                )}
-
-                {auth?.type === "basic" && (
-                  <div className="space-y-2 max-w-lg">
-                    <div className="space-y-1">
-                      <label className="block text-xs font-medium text-[#222222] dark:text-[#F5F5F7]">
-                        Username
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="username"
-                        value={auth.basic?.username || ""}
-                        onChange={(e) =>
-                          setAuth({
-                            ...auth,
-                            basic: { ...auth.basic, username: e.target.value },
-                          })
-                        }
-                        className="w-full px-3 py-2 rounded-md bg-[#FAF3E1]/40 dark:bg-[#0B0B0D] border border-[#E6D2A5]/60 dark:border-[#2C2C2E] text-xs font-mono text-[#222222] dark:text-[#F5F5F7] focus:outline-none focus:border-[#FF6D1F]"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="block text-xs font-medium text-[#222222] dark:text-[#F5F5F7]">
-                        Password
-                      </label>
-                      <input
-                        type="password"
-                        placeholder="••••••••"
-                        value={auth.basic?.password || ""}
-                        onChange={(e) =>
-                          setAuth({
-                            ...auth,
-                            basic: { ...auth.basic, password: e.target.value },
-                          })
-                        }
-                        className="w-full px-3 py-2 rounded-md bg-[#FAF3E1]/40 dark:bg-[#0B0B0D] border border-[#E6D2A5]/60 dark:border-[#2C2C2E] text-xs font-mono text-[#222222] dark:text-[#F5F5F7] focus:outline-none focus:border-[#FF6D1F]"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {auth?.type === "api-key" && (
-                  <div className="space-y-2 max-w-lg">
-                    <div className="space-y-1">
-                      <label className="block text-xs font-medium text-[#222222] dark:text-[#F5F5F7]">
-                        Key
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="X-API-Key"
-                        value={auth.apiKey?.key || ""}
-                        onChange={(e) =>
-                          setAuth({
-                            ...auth,
-                            apiKey: { ...auth.apiKey, key: e.target.value },
-                          })
-                        }
-                        className="w-full px-3 py-2 rounded-md bg-[#FAF3E1]/40 dark:bg-[#0B0B0D] border border-[#E6D2A5]/60 dark:border-[#2C2C2E] text-xs font-mono text-[#222222] dark:text-[#F5F5F7] focus:outline-none focus:border-[#FF6D1F]"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="block text-xs font-medium text-[#222222] dark:text-[#F5F5F7]">
-                        Value
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="api_key_secret_value"
-                        value={auth.apiKey?.value || ""}
-                        onChange={(e) =>
-                          setAuth({
-                            ...auth,
-                            apiKey: { ...auth.apiKey, value: e.target.value },
-                          })
-                        }
-                        className="w-full px-3 py-2 rounded-md bg-[#FAF3E1]/40 dark:bg-[#0B0B0D] border border-[#E6D2A5]/60 dark:border-[#2C2C2E] text-xs font-mono text-[#222222] dark:text-[#F5F5F7] focus:outline-none focus:border-[#FF6D1F]"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="block text-xs font-medium text-[#222222] dark:text-[#F5F5F7]">
-                        Add To
-                      </label>
-                      <select
-                        value={auth.apiKey?.location || "header"}
-                        onChange={(e) =>
-                          setAuth({
-                            ...auth,
-                            apiKey: {
-                              ...auth.apiKey,
-                              location: e.target.value,
-                            },
-                          })
-                        }
-                        className="px-3 py-2 rounded-md bg-[#FAF3E1]/40 dark:bg-[#0B0B0D] border border-[#E6D2A5]/60 dark:border-[#2C2C2E] text-xs font-mono text-[#222222] dark:text-[#F5F5F7] focus:outline-none focus:border-[#FF6D1F] cursor-pointer"
-                      >
-                        <option value="header">Header</option>
-                        <option value="query">Query Params</option>
-                      </select>
-                    </div>
-                  </div>
-                )}
-
-                {(!auth?.type || auth?.type === "none") && (
-                  <div className="p-4 text-center text-xs text-[#8C8C8C] dark:text-[#6E6E73] font-mono">
-                    This request does not use authorization.
-                  </div>
-                )}
-              </div>
+              <AuthEditor
+                auth={auth}
+                onChange={(newAuth) => {
+                  setAuth(newAuth);
+                  dispatch(setCurrentRequestAuth(newAuth));
+                }}
+              />
             )}
           </div>
         </div>
