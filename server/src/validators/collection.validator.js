@@ -24,6 +24,13 @@ export const createCollectionSchema = z.object({
     .optional()
     .default(""),
 
+  baseUrl: z
+    .string()
+    .trim()
+    .max(2000, "Base URL must not exceed 2000 characters")
+    .optional()
+    .default(""),
+
   parent: objectIdValidation.default(null),
 
   order: z.coerce
@@ -45,6 +52,12 @@ export const updateCollectionSchema = z.object({
     .string()
     .trim()
     .max(500, "Description must not exceed 500 characters")
+    .optional(),
+
+  baseUrl: z
+    .string()
+    .trim()
+    .max(2000, "Base URL must not exceed 2000 characters")
     .optional(),
 
   parent: objectIdValidation,

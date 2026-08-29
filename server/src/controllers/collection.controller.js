@@ -5,11 +5,12 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 const createCollection = asyncHandler(async (req, res) => {
   const userId = req.user?.Id;
   const { projectId } = req.params;
-  const { name, description, parent, order } = req.body;
+  const { name, description, baseUrl, parent, order } = req.body;
 
   const collection = await collectionService.createCollection({
     name,
     description,
+    baseUrl,
     project: projectId,
     parent,
     order,
@@ -41,13 +42,14 @@ const getProjectCollections = asyncHandler(async (req, res) => {
 
 const updateCollection = asyncHandler(async (req, res) => {
   const { projectId, collectionId } = req.params;
-  const { name, description, parent, order } = req.body;
+  const { name, description, baseUrl, parent, order } = req.body;
 
   const updatedCollection = await collectionService.updateCollection({
     collectionId,
     projectId,
     name,
     description,
+    baseUrl,
     parent,
     order,
   });

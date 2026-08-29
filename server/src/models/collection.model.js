@@ -14,6 +14,12 @@ const collectionSchema = new mongoose.Schema(
       maxlength: 500,
       default: "",
     },
+    baseUrl: {
+      type: String,
+      trim: true,
+      default: "",
+      maxlength: 2000,
+    },
     project: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Project",

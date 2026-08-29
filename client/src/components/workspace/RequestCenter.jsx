@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Send,
@@ -24,22 +24,50 @@ import ParamsEditor from "../requestBuilder/ParamsEditor.jsx";
 import HeadersEditor from "../requestBuilder/HeadersEditor.jsx";
 import BodyEditor from "../requestBuilder/BodyEditor.jsx";
 import AuthEditor from "../requestBuilder/AuthEditor.jsx";
+import {
+  buildUrlWithQueryParams,
+  parseQueryParamsFromUrl,
+  combineBaseUrlAndPath,
+  extractEndpointPath,
+} from "../../utils/urlUtils.js";
 
 function RequestCenter({ project, request, onNewRequest }) {
   const dispatch = useDispatch();
   const reduxCurrentRequest = useSelector((state) => state.request.currentRequest);
   const selected = request !== undefined ? request : reduxCurrentRequest;
 
-  // Derive local state from selected request
+  // Lookup target collection to retrieve its baseUrl
+  const collections = useSelector((state) => state.collection.collections || []);
+  const requestCollection = collections.find(
+    (c) => String(c._id) === String(selected?.collection)
+  );
+  // Collection baseUrl takes priority; falls back to project baseUrl
+  const effectiveBaseUrl = (requestCollection?.baseUrl || project?.baseUrl || "").trim();
+
+  // Derive local state from selected request with live query param sync
+  const initialParams = selected?.queryParams || [];
+  const rawUrl = selected?.url || "";
+  const initialEndpoint = effectiveBaseUrl
+    ? extractEndpointPath(rawUrl, effectiveBaseUrl)
+    : rawUrl;
+  const initialUrl =
+    initialParams.length > 0 && !initialEndpoint.includes("?")
+      ? buildUrlWithQueryParams(initialEndpoint, initialParams)
+      : initialEndpoint;
+
   const [method, setMethod] = useState(selected?.method || "GET");
-  const [url, setUrl] = useState(selected?.url || "");
+  const [url, setUrl] = useState(initialUrl);
   const [activeReqTab, setActiveReqTab] = useState(
     selected?.body?.type && selected?.body?.type !== "none" ? "body" : "params"
   );
   const [bodyType, setBodyType] = useState(selected?.body?.type || "none");
   const [requestBody, setRequestBody] = useState(selected?.body?.content || "");
   const [headers, setHeaders] = useState(selected?.headers || []);
-  const [queryParams, setQueryParams] = useState(selected?.queryParams || []);
+  const [queryParams, setQueryParams] = useState(
+    initialEndpoint.includes("?")
+      ? parseQueryParamsFromUrl(initialEndpoint, initialParams)
+      : initialParams
+  );
   const [auth, setAuth] = useState(
     selected?.auth || {
       type: "none",
@@ -49,9 +77,31 @@ function RequestCenter({ project, request, onNewRequest }) {
     }
   );
 
+  // Live two-way sync: URL bar input -> Query Params table
+  const handleUrlChange = (newUrl) => {
+    setUrl(newUrl);
+    dispatch(setCurrentRequestUrl(newUrl));
+
+    const parsedParams = parseQueryParamsFromUrl(newUrl, queryParams);
+    setQueryParams(parsedParams);
+    dispatch(setCurrentRequestQueryParams(parsedParams));
+  };
+
+  // Live two-way sync: Query Params table -> URL bar input
+  const handleQueryParamsChange = (updatedParams) => {
+    setQueryParams(updatedParams);
+    dispatch(setCurrentRequestQueryParams(updatedParams));
+
+    const nextUrl = buildUrlWithQueryParams(url, updatedParams);
+    setUrl(nextUrl);
+    dispatch(setCurrentRequestUrl(nextUrl));
+  };
+
   const [copied, setCopied] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  const combinedUrl = combineBaseUrlAndPath(effectiveBaseUrl, url);
 
   // Mock response payload for execution preview
   const mockResponse = {
@@ -65,7 +115,7 @@ function RequestCenter({ project, request, onNewRequest }) {
       message: `${selected?.name || "Request"} executed successfully`,
       data: {
         method: method,
-        endpoint: url || "/api/v1",
+        endpoint: combinedUrl || url || "/api/v1",
         authType: auth?.type || "none",
       },
     },
@@ -77,7 +127,35 @@ function RequestCenter({ project, request, onNewRequest }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleSave = async () => {
+  // Compute dirty state by comparing current UI state with original selected request
+  const isDirty = useMemo(() => {
+    if (!selected) return false;
+    if (method !== (selected.method || "GET")) return true;
+    if (url !== (initialUrl || "")) return true;
+    if (bodyType !== (selected.body?.type || "none")) return true;
+    if (requestBody !== (selected.body?.content || "")) return true;
+
+    // Check queryParams
+    const originalParams = selected.queryParams || [];
+    if (JSON.stringify(queryParams) !== JSON.stringify(originalParams)) return true;
+
+    // Check headers
+    const originalHeaders = selected.headers || [];
+    if (JSON.stringify(headers) !== JSON.stringify(originalHeaders)) return true;
+
+    // Check auth
+    const originalAuth = selected.auth || {
+      type: "none",
+      bearer: { token: "" },
+      basic: { username: "", password: "" },
+      apiKey: { key: "", value: "", location: "header" },
+    };
+    if (JSON.stringify(auth) !== JSON.stringify(originalAuth)) return true;
+
+    return false;
+  }, [selected, method, url, initialUrl, bodyType, requestBody, queryParams, headers, auth]);
+
+  const handleSave = useCallback(async () => {
     if (!selected?._id || !selected?.collection) return;
     try {
       setIsSaving(true);
@@ -106,7 +184,19 @@ function RequestCenter({ project, request, onNewRequest }) {
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [selected, project, dispatch, method, url, bodyType, requestBody, headers, queryParams, auth]);
+
+  // Keyboard shortcut: Ctrl+S / Cmd+S to save
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+        e.preventDefault();
+        handleSave();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleSave]);
 
   const handleCloseTab = () => {
     dispatch(clearCurrentRequest());
@@ -165,6 +255,12 @@ function RequestCenter({ project, request, onNewRequest }) {
             <span className="truncate max-w-[160px] font-mono text-[11px]">
               {selected?.name || "Request"}
             </span>
+            {isDirty && (
+              <span
+                className="w-2 h-2 rounded-full bg-[#FF6D1F] inline-block shrink-0 animate-pulse"
+                title="Unsaved changes"
+              />
+            )}
             <button
               type="button"
               onClick={handleCloseTab}
@@ -186,22 +282,38 @@ function RequestCenter({ project, request, onNewRequest }) {
         </div>
 
         <div className="flex items-center gap-2">
-          {saveSuccess && (
+          {saveSuccess ? (
             <span className="text-[11px] text-[#059669] dark:text-[#00E599] font-mono flex items-center gap-1">
               <Check className="w-3 h-3" /> Saved
+            </span>
+          ) : isDirty ? (
+            <span className="text-[11px] text-[#FF6D1F] font-mono flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FF6D1F]" /> Unsaved
+            </span>
+          ) : (
+            <span className="text-[11px] text-[#8C8C8C] dark:text-[#6E6E73] font-mono">
+              Saved
             </span>
           )}
           <button
             type="button"
             onClick={handleSave}
             disabled={isSaving}
-            className="flex items-center gap-1 px-2.5 py-1 rounded bg-[#FFFFFF] dark:bg-[#1C1C1F] hover:bg-[#F5E7C6] dark:hover:bg-[#2C2C2E] border border-[#E6D2A5] dark:border-[#2C2C2E] text-xs font-medium text-[#222222] dark:text-[#F5F5F7] transition-colors cursor-pointer disabled:opacity-50"
-            title="Save Request Details"
+            className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs font-medium transition-all cursor-pointer disabled:opacity-50 ${
+              isDirty
+                ? "bg-[#FF6D1F] hover:bg-[#E85B0F] text-white border border-[#FF6D1F] shadow-xs"
+                : "bg-[#FFFFFF] dark:bg-[#1C1C1F] hover:bg-[#F5E7C6] dark:hover:bg-[#2C2C2E] border border-[#E6D2A5] dark:border-[#2C2C2E] text-[#222222] dark:text-[#F5F5F7]"
+            }`}
+            title={isDirty ? "Save changes (Ctrl+S)" : "Request is saved"}
           >
             {isSaving ? (
               <Loader2 className="w-3 h-3 animate-spin" />
             ) : (
-              <Save className="w-3 h-3 text-[#5C5C5C] dark:text-[#A1A1A6]" />
+              <Save
+                className={`w-3 h-3 ${
+                  isDirty ? "text-white" : "text-[#5C5C5C] dark:text-[#A1A1A6]"
+                }`}
+              />
             )}
             <span>Save</span>
           </button>
@@ -214,12 +326,11 @@ function RequestCenter({ project, request, onNewRequest }) {
         <RequestHeader
           method={method}
           url={url}
+          baseUrl={effectiveBaseUrl}
           onMethodChange={(newMethod) => {
             setMethod(newMethod);
           }}
-          onUrlChange={(newUrl) => {
-            setUrl(newUrl);
-          }}
+          onUrlChange={handleUrlChange}
           onSend={handleSave}
           isSending={isSaving}
         />
@@ -243,11 +354,9 @@ function RequestCenter({ project, request, onNewRequest }) {
             {/* PARAMS TAB */}
             {activeReqTab === "params" && (
               <ParamsEditor
+                url={url}
                 params={queryParams}
-                onChange={(updated) => {
-                  setQueryParams(updated);
-                  dispatch(setCurrentRequestQueryParams(updated));
-                }}
+                onChange={handleQueryParamsChange}
               />
             )}
 

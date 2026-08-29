@@ -32,6 +32,7 @@ const isDescendant = async ({
 const createCollection = async ({
   name,
   description,
+  baseUrl,
   project,
   parent,
   order,
@@ -67,6 +68,7 @@ const createCollection = async ({
   const collection = await Collection.create({
     name,
     description,
+    baseUrl: baseUrl?.trim() || "",
     project,
     parent: parent || null,
     order: order ?? 0,
@@ -101,6 +103,7 @@ const updateCollection = async ({
   projectId,
   name,
   description,
+  baseUrl,
   parent,
   order,
 }) => {
@@ -140,6 +143,7 @@ const updateCollection = async ({
   const updateData = {};
   if (name !== undefined) updateData.name = name;
   if (description !== undefined) updateData.description = description;
+  if (baseUrl !== undefined) updateData.baseUrl = baseUrl?.trim() || "";
   if (parent !== undefined) updateData.parent = parent || null;
   if (order !== undefined) updateData.order = Number(order);
 
