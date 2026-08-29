@@ -7,11 +7,12 @@ import {
 } from "../validators/collection.validator.js";
 import { authenticate } from "../middlewares/auth.middleware.js";
 import { verifyProjectOwner } from "../middlewares/verifyOwner.middleware.js";
+import requestRouter from './request.routes.js'
 
 const router = Router({ mergeParams: true });
 
 router.use(authenticate);
-
+router.use('/:collectionId/requests',requestRouter)
 router
   .route("/")
   .all(verifyProjectOwner)
