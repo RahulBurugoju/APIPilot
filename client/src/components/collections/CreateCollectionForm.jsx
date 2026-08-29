@@ -5,6 +5,8 @@ import { Loader2, AlertCircle, FolderPlus } from "lucide-react";
 
 function CreateCollectionForm({
   projectId,
+  parentCollection = null,
+  parentId = null,
   onCancel,
   onSuccess,
   isModal = false,
@@ -15,6 +17,8 @@ function CreateCollectionForm({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
+
+  const effectiveParentId = parentCollection?._id || parentId || null;
 
   const handleOnChange = (e) => {
     const { name: fieldName, value } = e.target;
@@ -55,6 +59,7 @@ function CreateCollectionForm({
             collectionDetails: {
               name: name.trim(),
               description: description.trim(),
+              parent: effectiveParentId,
             },
           })
         ).unwrap();

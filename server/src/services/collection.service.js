@@ -170,6 +170,12 @@ const deleteCollection = async ({ collectionId, projectId }) => {
     throw new ApiError(404, "Collection not found");
   }
 
+  // Child Promotion: Re-assign children of deleted collection to the deleted collection's parent
+  await Collection.updateMany(
+    { parent: collectionId, project: projectId },
+    { $set: { parent: collection.parent || null } }
+  );
+
   return collection;
 };
 

@@ -7,6 +7,7 @@ import ThemeToggle from "../../components/common/ThemeToggle";
 import EditProjectModal from "../../components/projects/EditProjectModal";
 import DeleteProjectModal from "../../components/projects/DeleteProjectModal";
 import CreateCollectionModal from "../../components/collections/CreateCollectionModal";
+import DeleteCollectionModal from "../../components/collections/DeleteCollectionModal";
 import CollectionList from "../../components/collections/CollectionList";
 import WorkspaceExplorer from "../../components/workspace/WorkspaceExplorer";
 import RequestCenter from "../../components/workspace/RequestCenter";
@@ -64,6 +65,13 @@ function ProjectWorkspacePage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isCreateCollectionModalOpen, setIsCreateCollectionModalOpen] =
     useState(false);
+  const [parentCollectionForCreate, setParentCollectionForCreate] =
+    useState(null);
+  const [collectionToDelete, setCollectionToDelete] = useState(null);
+  const [isDeleteCollectionModalOpen, setIsDeleteCollectionModalOpen] =
+    useState(false);
+
+
 
   useEffect(() => {
     if (projectId) {
@@ -289,7 +297,16 @@ function ProjectWorkspacePage() {
             setActiveView("request");
           }}
           onNewCollection={() => {
+            setParentCollectionForCreate(null);
             setIsCreateCollectionModalOpen(true);
+          }}
+          onCreateSubCollection={(parentCol) => {
+            setParentCollectionForCreate(parentCol);
+            setIsCreateCollectionModalOpen(true);
+          }}
+          onDeleteCollection={(col) => {
+            setCollectionToDelete(col);
+            setIsDeleteCollectionModalOpen(true);
           }}
         />
 
@@ -391,8 +408,22 @@ function ProjectWorkspacePage() {
       {/* ---------------------------------------------------- */}
       <CreateCollectionModal
         isOpen={isCreateCollectionModalOpen}
-        onClose={() => setIsCreateCollectionModalOpen(false)}
+        onClose={() => {
+          setIsCreateCollectionModalOpen(false);
+          setParentCollectionForCreate(null);
+        }}
         projectId={projectId}
+        parentCollection={parentCollectionForCreate}
+      />
+
+      <DeleteCollectionModal
+        isOpen={isDeleteCollectionModalOpen}
+        onClose={() => {
+          setIsDeleteCollectionModalOpen(false);
+          setCollectionToDelete(null);
+        }}
+        projectId={projectId}
+        collection={collectionToDelete}
       />
 
       <EditProjectModal
