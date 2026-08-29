@@ -86,7 +86,7 @@ const deleteRequest = asyncHandler(async (req, res) => {
     .json(
       new ApiResponse(
         200,
-        { deletedRequest: request },
+        { deletedReqId: request._id },
         "Request deleted successfully"
       )
     );
