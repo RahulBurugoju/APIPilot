@@ -23,6 +23,7 @@ import {
 } from "../../features/request/requestSlice.js";
 import requestThunk from "../../features/request/request.Thunk.js";
 import RequestHeader from "../requestBuilder/RequestHeader.jsx";
+import RequestTabs from "../requestBuilder/RequestTabs.jsx";
 
 function RequestCenter({ project, request, onNewRequest }) {
   const dispatch = useDispatch();
@@ -260,47 +261,16 @@ function RequestCenter({ project, request, onNewRequest }) {
         {/* Request Tabs & Body Editor */}
         <div className="rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] shadow-xs flex flex-col">
           {/* Sub Tab Bar */}
-          <div className="flex items-center gap-1 px-3 border-b border-[#FAF3E1] dark:border-[#1F1F23] text-xs font-medium overflow-x-auto">
-            {[
-              {
-                id: "params",
-                label: `Params ${queryParams.length > 0 ? `(${queryParams.length})` : ""}`,
-                icon: SlidersHorizontal,
-              },
-              {
-                id: "headers",
-                label: `Headers ${headers.length > 0 ? `(${headers.length})` : ""}`,
-                icon: FileText,
-              },
-              {
-                id: "body",
-                label: `Body (${bodyType})`,
-                icon: Code2,
-              },
-              {
-                id: "auth",
-                label: `Auth (${auth?.type || "none"})`,
-                icon: Shield,
-              },
-            ].map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveReqTab(tab.id)}
-                  className={`flex items-center gap-1.5 py-2.5 px-3 border-b-2 text-xs transition-colors cursor-pointer ${
-                    activeReqTab === tab.id
-                      ? "border-[#FF6D1F] text-[#FF6D1F] dark:text-white font-semibold"
-                      : "border-transparent text-[#5C5C5C] dark:text-[#A1A1A6] hover:text-[#222222] dark:hover:text-[#F5F5F7]"
-                  }`}
-                >
-                  <Icon className="w-3.5 h-3.5" />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
-          </div>
+          <RequestTabs
+            activeTab={activeReqTab}
+            onTabChange={setActiveReqTab}
+            counts={{
+              params: queryParams.length,
+              headers: headers.length,
+              bodyType: bodyType !== "none" ? bodyType : null,
+              authType: auth?.type !== "none" ? auth.type : null,
+            }}
+          />
 
           {/* Request Sub-Tab Content */}
           <div className="p-3">
