@@ -35,15 +35,57 @@ const keyValuePairSchema = z.object({
   enabled: z.boolean().optional().default(true),
 });
 
-const requestBodySchema = z.object({
-  type: z
-    .enum(["none", "json", "text", "form-data", "urlencoded"], {
-      errorMap: () => ({ message: "Invalid request body type" }),
+const parseArrayPreprocess = (val) => {
+  if (typeof val === "string") {
+    try {
+      const parsed = JSON.parse(val);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return val;
+};
+
+const arrayOrJsonString = (defaultVal = []) =>
+  z.preprocess(
+    parseArrayPreprocess,
+    z.array(keyValuePairSchema).optional().default(defaultVal)
+  );
+
+const parseBodyPreprocess = (val) => {
+  if (val === null || val === undefined) {
+    return { type: "none", content: "" };
+  }
+  if (typeof val === "string") {
+    try {
+      const parsed = JSON.parse(val);
+      if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) {
+        return parsed;
+      }
+    } catch {
+      // Fall through if not stringified JSON object
+    }
+    return { type: "json", content: val };
+  }
+  return val;
+};
+
+const requestBodySchema = z.preprocess(
+  parseBodyPreprocess,
+  z
+    .object({
+      type: z
+        .enum(["none", "json", "text", "form-data", "urlencoded"], {
+          errorMap: () => ({ message: "Invalid request body type" }),
+        })
+        .optional()
+        .default("none"),
+      content: z.string().optional().default(""),
     })
     .optional()
-    .default("none"),
-  content: z.string().optional().default(""),
-});
+    .default({ type: "none", content: "" })
+);
 
 export const createRequestSchema = z.object({
   name: z
@@ -61,13 +103,13 @@ export const createRequestSchema = z.object({
     .optional()
     .default(""),
 
-  collection: objectIdValidation("Invalid collection ID format"),
+  collection: optionalObjectIdValidation("Invalid collection ID format"),
 
-  headers: z.array(keyValuePairSchema).optional().default([]),
+  headers: arrayOrJsonString([]),
 
-  queryParams: z.array(keyValuePairSchema).optional().default([]),
+  queryParams: arrayOrJsonString([]),
 
-  body: requestBodySchema.optional().default({ type: "none", content: "" }),
+  body: requestBodySchema,
 
   order: z.coerce
     .number({ invalid_type_error: "Order must be a number" })
@@ -94,11 +136,11 @@ export const updateRequestSchema = z.object({
 
   collection: optionalObjectIdValidation("Invalid collection ID format"),
 
-  headers: z.array(keyValuePairSchema).optional(),
+  headers: z.preprocess(parseArrayPreprocess, z.array(keyValuePairSchema).optional()),
 
-  queryParams: z.array(keyValuePairSchema).optional(),
+  queryParams: z.preprocess(parseArrayPreprocess, z.array(keyValuePairSchema).optional()),
 
-  body: requestBodySchema.optional(),
+  body: requestBodySchema,
 
   order: z.coerce
     .number({ invalid_type_error: "Order must be a number" })

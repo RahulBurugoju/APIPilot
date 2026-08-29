@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const requestSchema = new mongoose.Schema({
     name: {
         type: String,
-        requires: true,
+        required: true,
         trim: true,
         maxlength: 150,
     },
@@ -14,14 +14,16 @@ const requestSchema = new mongoose.Schema({
             "POST",
             "PUT",
             "DELETE",
-            "PATCH"
+            "PATCH",
+            "HEAD",
+            "OPTIONS"
         ],
         default: "GET"
     },
     url: {
         type: String,
         trim: true,
-        default: " ",
+        default: "",
         maxlength: 2000
     },
     collection: {
@@ -30,7 +32,7 @@ const requestSchema = new mongoose.Schema({
         required: true,
         index: true
     },
-    header: {
+    headers: {
         type: [
             {
                 key: {
@@ -55,6 +57,7 @@ const requestSchema = new mongoose.Schema({
                 key: {
                     type: String,
                     trim: true,
+                    
                 },
                 value: {
                     type: String,

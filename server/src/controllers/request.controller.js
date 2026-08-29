@@ -3,94 +3,99 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 const createRequest = asyncHandler(async (req, res) => {
-    const { projetcId, collectionId } = req.params;
-    const userId = req.user.Id;
+  const { projectId, collectionId } = req.params;
 
-    const { name, method, url, headers, queryParams, body, order } = req.body;
+  const { name, method, url, headers, queryParams, body, order } = req.body;
 
-    const request = await requestService.createRequest({
-        name,
-        method,
-        url,
-        headers,
-        queryParams,
-        body,
-        order,
-        collectionId
-    })
+  const request = await requestService.createRequest({
+    name,
+    method,
+    url,
+    headers,
+    queryParams,
+    body,
+    order,
+    collectionId: collectionId || req.body.collection,
+  });
 
-    return res.status(201).json(
-        new ApiResponse(201,{request},"Request created successfully")
-    )
+  return res
+    .status(201)
+    .json(new ApiResponse(201, { request }, "Request created successfully"));
+});
 
+const getCollectionRequests = asyncHandler(async (req, res) => {
+  const { projectId, collectionId } = req.params;
 
-})
+  const requests = await requestService.getCollectionRequests({
+    collectionId,
+    projectId,
+  });
 
-const getCollectionRequests = asyncHandler(async(req,res)=>{
-     const { projetcId, collectionId } = req.params;
-    const userId = req.user.Id;
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { requests }, "Requests fetched successfully"));
+});
 
-    const requests = await requestService.getCollectionRequests({
-        collectionId,
-        projectId
-    })
+const getRequest = asyncHandler(async (req, res) => {
+  const { requestId, collectionId } = req.params;
 
-    return res.status(200).json(
-        new ApiResponse(200,{requests},"Requests fetched successfully")
-    )       
-})
+  const request = await requestService.getRequest({ requestId, collectionId });
 
-const getRequest = asyncHandler(async(req,res)=>{
-    const {requestId, collectionId} = req.params;
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { request }, "Request fetched successfully"));
+});
 
-    const request = await requestService.getRequest({requestId,collectionId});
+const updateRequest = asyncHandler(async (req, res) => {
+  const { projectId, collectionId, requestId } = req.params;
+  const { name, method, url, headers, queryParams, body, order } = req.body;
 
-    return res.status(200).json(
-        new ApiResponse(200,{request},"Request fetched successfully")
-    )
-})
+  const request = await requestService.updateRequest({
+    requestId,
+    collectionId,
+    name,
+    method,
+    url,
+    headers,
+    queryParams,
+    body,
+    order,
+  });
 
-const updateRequest = asyncHandler(async(req,res)=>{
-    const {projetcId,collectionId,requestId} = req.params;
-    const userId = req.user.Id;
-    const {name,method,url,headers,queryParams,body,order} = req.body;
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { updatedRequest: request },
+        "Request updated successfully"
+      )
+    );
+});
 
-    const request = await requestService.updateRequest({
-        requestId,
-        collectionId,
-        name,
-        method,
-        url,
-        headers,
-        queryParams,
-        body,
-        order
-    })
+const deleteRequest = asyncHandler(async (req, res) => {
+  const { projectId, collectionId, requestId } = req.params;
 
-    return res.status(200).json(
-        new ApiResponse(200,{updatedRequest:request},"Request updated successfully")
-    )
-})
+  const request = await requestService.deleteRequest({
+    requestId,
+    collectionId,
+  });
 
-const deleteRequest = asyncHandler(async(req,res)=>{
-    const {projetcId,collectionId,requestId} = req.params;
-    const userId = req.user.Id;
-
-    const request = await requestService.deleteRequest({
-        requestId,
-        collectionId
-    })
-
-    return res.status(200).json(
-        new ApiResponse(200,{deletedRequest:request},"Request deleted successfully")
-    )
-})
-
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { deletedRequest: request },
+        "Request deleted successfully"
+      )
+    );
+});
 
 export default {
-    createRequest,
-    getCollectionRequests,
-    getRequest,
-    updateRequest,
-    deleteRequest   
-}
+  createRequest,
+  getCollectionRequests,
+  getRequest,
+  updateRequest,
+  deleteRequest,
+};
