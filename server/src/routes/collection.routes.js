@@ -18,4 +18,9 @@ router
   .post(validate(createCollectionSchema), collectionController.createCollection)
   .get(collectionController.getProjectCollections);
 
+
+router.route("/collections/:collectionId")
+  .all(verifyProjectOwner)
+  .patch(validate(updateCollectionSchema), collectionController.updateCollection);
+
 export default router;

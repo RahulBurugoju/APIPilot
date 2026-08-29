@@ -55,7 +55,30 @@ const getProjectCollections = async ({ projectId, userId }) => {
 
   return collections || [];
 };
+const updateCollection = async ({
+  collectionId,
+  userId,
+  name,
+  description,
+  project: projectId,
+  parent,
+  order,
+}) => {
+  if (!mongoose.Types.ObjectId.isValid(collectionId)) {
+    throw new ApiError(400, "Invalid collection ID format");
+  }
+  const existingCollection = await Collection.findById(collectionId);
+  if (!existingCollection) {
+    throw new ApiError(404, "Collection not found");
+  }
+  if (existingCollection.owner.toString() !== userId.toString()) {
+    throw new ApiError(403, "You are not authorized to update this collection");
+  }
+};
+
 export default {
   createCollection,
   getProjectCollections,
+  updateCollection,
 };
+

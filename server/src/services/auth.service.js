@@ -29,7 +29,7 @@ export const registerUser = async ({ name, email, password }) => {
   const refreshToken = generateRefreshToken(user?._id.toString());
 
   user.refreshToken = refreshToken;
-  await user.save({validateBeforeSave:false})
+  await user.save({ validateBeforeSave: false })
 
   return {
     user: {
@@ -130,7 +130,7 @@ export const logoutUser = async (userId) => {
   await user.save({ validateBeforeSave: false });
 
   return {
-    success:true,
+    success: true,
     message: "User logged out successfully",
   };
 };
