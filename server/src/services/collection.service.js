@@ -55,6 +55,7 @@ const getProjectCollections = async ({ projectId, userId }) => {
 
   return collections || [];
 };
+
 const updateCollection = async ({
   collectionId,
   projectId,
@@ -67,7 +68,31 @@ const updateCollection = async ({
     throw new ApiError(400, "Invalid collection ID format");
   }
 
-  const collection = await Collection.findOne({
+  const updateData = {};
+  if (name !== undefined) updateData.name = name;
+  if (description !== undefined) updateData.description = description;
+  if (parent !== undefined) updateData.parent = parent || null;
+  if (order !== undefined) updateData.order = Number(order);
+
+  const collection = await Collection.findOneAndUpdate(
+    { _id: collectionId, project: projectId },
+    { $set: updateData },
+    { new: true, runValidators: true }
+  );
+
+  if (!collection) {
+    throw new ApiError(404, "Collection not found");
+  }
+
+  return collection;
+};
+
+const deleteCollection = async ({ collectionId, projectId }) => {
+  if (!mongoose.Types.ObjectId.isValid(collectionId)) {
+    throw new ApiError(400, "Invalid collection ID format");
+  }
+
+  const collection = await Collection.findOneAndDelete({
     _id: collectionId,
     project: projectId,
   });
@@ -76,13 +101,6 @@ const updateCollection = async ({
     throw new ApiError(404, "Collection not found");
   }
 
-  if (name !== undefined) collection.name = name;
-  if (description !== undefined) collection.description = description;
-  if (parent !== undefined) collection.parent = parent || null;
-  if (order !== undefined) collection.order = Number(order);
-
-  await collection.save();
-
   return collection;
 };
 
@@ -90,6 +108,6 @@ export default {
   createCollection,
   getProjectCollections,
   updateCollection,
+  deleteCollection,
 };
-
 

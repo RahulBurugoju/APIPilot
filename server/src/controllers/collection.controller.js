@@ -59,9 +59,24 @@ const updateCollection = asyncHandler(async (req, res) => {
     );
 });
 
+const deleteCollection = asyncHandler(async(req,res) => {
+  const {projectId, collectionId} = req.params;
+  
+  const deletedCollection = await collectionService.deleteCollection({
+    collectionId,
+    projectId
+  })
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, { deletedCollection }, "Collection deleted successfully")
+    );
+})
+
 export default {
   createCollection,
   getProjectCollections,
   updateCollection,
+  deleteCollection
 };
 

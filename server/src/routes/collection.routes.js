@@ -21,7 +21,8 @@ router
 
 router.route("/:collectionId")
   .all(verifyProjectOwner)
-  .patch( collectionController.updateCollection);
+  .patch(collectionController.updateCollection)
+  .delete(collectionController.deleteCollection);
 
 
 export default router;
