@@ -8,6 +8,8 @@ import EditProjectModal from "../../components/projects/EditProjectModal";
 import DeleteProjectModal from "../../components/projects/DeleteProjectModal";
 import CreateCollectionModal from "../../components/collections/CreateCollectionModal";
 import DeleteCollectionModal from "../../components/collections/DeleteCollectionModal";
+import CreateRequestModal from "../../components/requests/CreateRequestModal";
+import requestThunk from "../../features/request/request.Thunk.js";
 import CollectionList from "../../components/collections/CollectionList";
 import WorkspaceExplorer from "../../components/workspace/WorkspaceExplorer";
 import RequestCenter from "../../components/workspace/RequestCenter";
@@ -49,15 +51,12 @@ function ProjectWorkspacePage() {
     loading: collectionsLoading,
     error: collectionsError,
   } = useSelector((state) => state.collection);
+  const { requests, currentRequest } = useSelector((state) => state.request);
 
   const [copied, setCopied] = useState(false);
   const [activeView, setActiveView] = useState("request"); // 'request' | 'overview' | 'collections' | 'environments' | 'history'
-  const [selectedRequest, setSelectedRequest] = useState({
-    id: "req-1",
-    name: "User Login",
-    method: "POST",
-    path: "/auth/login",
-  });
+  const [selectedCollection, setSelectedCollection] = useState(null);
+  const [selectedRequest, setSelectedRequest] = useState(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   // Modal / Form Visibility States
@@ -70,8 +69,10 @@ function ProjectWorkspacePage() {
   const [collectionToDelete, setCollectionToDelete] = useState(null);
   const [isDeleteCollectionModalOpen, setIsDeleteCollectionModalOpen] =
     useState(false);
-
-
+  const [isCreateRequestModalOpen, setIsCreateRequestModalOpen] =
+    useState(false);
+  const [targetCollectionForRequest, setTargetCollectionForRequest] =
+    useState(null);
 
   useEffect(() => {
     if (projectId) {
@@ -79,6 +80,19 @@ function ProjectWorkspacePage() {
       dispatch(collectionThunk.getProjectCollections({ projectId }));
     }
   }, [projectId, dispatch]);
+
+  useEffect(() => {
+    if (projectId && collections && collections.length > 0) {
+      collections.forEach((col) => {
+        dispatch(
+          requestThunk.getCollectionRequests({
+            projectId,
+            collectionId: col._id,
+          })
+        );
+      });
+    }
+  }, [projectId, collections, dispatch]);
 
   const handleCopyId = () => {
     if (currentProject?._id) {
@@ -279,22 +293,22 @@ function ProjectWorkspacePage() {
         <WorkspaceExplorer
           project={currentProject}
           collections={collections || []}
+          requests={requests || []}
           loading={collectionsLoading}
           activeView={activeView}
           onSelectView={(view) => setActiveView(view)}
-          selectedRequest={selectedRequest}
+          selectedCollection={selectedCollection}
+          onSelectCollection={(col) => setSelectedCollection(col)}
+          selectedRequest={selectedRequest || currentRequest}
           onSelectRequest={(req) => {
             setSelectedRequest(req);
             setActiveView("request");
           }}
-          onNewRequest={() => {
-            setSelectedRequest({
-              id: `req-${Date.now()}`,
-              name: "New Request",
-              method: "GET",
-              path: "/api/v1",
-            });
-            setActiveView("request");
+          onNewRequest={(targetCol) => {
+            setTargetCollectionForRequest(
+              targetCol || selectedCollection || collections?.[0] || null
+            );
+            setIsCreateRequestModalOpen(true);
           }}
           onNewCollection={() => {
             setParentCollectionForCreate(null);
@@ -414,6 +428,16 @@ function ProjectWorkspacePage() {
         }}
         projectId={projectId}
         parentCollection={parentCollectionForCreate}
+      />
+
+      <CreateRequestModal
+        isOpen={isCreateRequestModalOpen}
+        onClose={() => {
+          setIsCreateRequestModalOpen(false);
+          setTargetCollectionForRequest(null);
+        }}
+        projectId={projectId}
+        collection={targetCollectionForRequest}
       />
 
       <DeleteCollectionModal

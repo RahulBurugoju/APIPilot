@@ -12,6 +12,7 @@ import CollectionTree from "../collections/CollectionTree";
 function WorkspaceExplorer({
   project,
   collections = [],
+  requests = [],
   loading = false,
   activeView,
   onSelectView,
@@ -43,7 +44,7 @@ function WorkspaceExplorer({
             {onNewRequest && (
               <button
                 type="button"
-                onClick={onNewRequest}
+                onClick={() => onNewRequest(selectedCollection)}
                 className="p-1 rounded hover:bg-[#F5E7C6] dark:hover:bg-[#1C1C1F] text-[#5C5C5C] dark:text-[#A1A1A6] hover:text-[#FF6D1F] transition-colors cursor-pointer"
                 title="New Request"
               >
@@ -68,9 +69,12 @@ function WorkspaceExplorer({
       <div className="flex-1 overflow-hidden p-2">
         <CollectionTree
           collections={collections}
+          requests={requests}
           loading={loading}
           selectedCollectionId={selectedCollection?._id}
+          selectedRequestId={selectedRequest?._id}
           onSelectCollection={onSelectCollection}
+          onSelectRequest={onSelectRequest}
           onCreateRootCollection={onNewCollection}
           onCreateSubCollection={onCreateSubCollection}
           onEditCollection={onEditCollection}

@@ -14,8 +14,11 @@ import CollectionTreeNode from "./CollectionTreeNode";
  */
 export function CollectionTree({
   collections = [],
+  requests = [],
   selectedCollectionId = null,
+  selectedRequestId = null,
   onSelectCollection = null,
+  onSelectRequest = null,
   onCreateSubCollection = null,
   onEditCollection = null,
   onDeleteCollection = null,
@@ -158,8 +161,11 @@ export function CollectionTree({
               key={rootNode._id}
               node={rootNode}
               level={0}
+              requests={requests}
               selectedCollectionId={selectedCollectionId}
+              selectedRequestId={selectedRequestId}
               onSelectCollection={onSelectCollection}
+              onSelectRequest={onSelectRequest}
               onCreateSubCollection={onCreateSubCollection}
               onEditCollection={onEditCollection}
               onDeleteCollection={onDeleteCollection}

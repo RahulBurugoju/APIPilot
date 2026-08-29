@@ -16,8 +16,11 @@ import {
 export function CollectionTreeNode({
   node,
   level = 0,
+  requests = [],
   selectedCollectionId,
+  selectedRequestId,
   onSelectCollection,
+  onSelectRequest,
   onCreateSubCollection,
   onEditCollection,
   onDeleteCollection,
@@ -28,6 +31,12 @@ export function CollectionTreeNode({
   const isExpanded = expandedNodes[node._id] ?? false;
   const isSelected = selectedCollectionId && String(selectedCollectionId) === String(node._id);
   const hasChildren = node.children && node.children.length > 0;
+
+  const nodeRequests = Array.isArray(requests)
+    ? requests.filter(
+        (req) => req.collection && String(req.collection) === String(node._id)
+      )
+    : [];
 
   return (
     <div className="select-none space-y-0.5">
@@ -155,24 +164,74 @@ export function CollectionTreeNode({
         </div>
       </div>
 
-      {/* Recursive Children Render */}
-      {isExpanded && hasChildren && (
-        <div className="border-l border-[#E6D2A5]/40 dark:border-[#2C2C2E] ml-4">
-          {node.children.map((child) => (
-            <CollectionTreeNode
-              key={child._id}
-              node={child}
-              level={level + 1}
-              selectedCollectionId={selectedCollectionId}
-              onSelectCollection={onSelectCollection}
-              onCreateSubCollection={onCreateSubCollection}
-              onEditCollection={onEditCollection}
-              onDeleteCollection={onDeleteCollection}
-              onAddRequest={onAddRequest}
-              expandedNodes={expandedNodes}
-              toggleExpand={toggleExpand}
-            />
-          ))}
+      {/* Recursive Children Render (Sub-collections & Requests) */}
+      {isExpanded && (
+        <div className="border-l border-[#E6D2A5]/40 dark:border-[#2C2C2E] ml-4 space-y-0.5">
+          {/* 1. Sub-collections */}
+          {hasChildren &&
+            node.children.map((child) => (
+              <CollectionTreeNode
+                key={child._id}
+                node={child}
+                level={level + 1}
+                requests={requests}
+                selectedCollectionId={selectedCollectionId}
+                selectedRequestId={selectedRequestId}
+                onSelectCollection={onSelectCollection}
+                onSelectRequest={onSelectRequest}
+                onCreateSubCollection={onCreateSubCollection}
+                onEditCollection={onEditCollection}
+                onDeleteCollection={onDeleteCollection}
+                onAddRequest={onAddRequest}
+                expandedNodes={expandedNodes}
+                toggleExpand={toggleExpand}
+              />
+            ))}
+
+          {/* 2. Collection Requests */}
+          {nodeRequests.map((req) => {
+            const isReqSelected =
+              selectedRequestId && String(selectedRequestId) === String(req._id);
+
+            const methodColors = {
+              GET: "text-[#059669] bg-[#ECFDF5] dark:bg-[#062417] dark:text-[#00E599]",
+              POST: "text-[#D97706] bg-[#FEF3C7] dark:bg-[#271E05] dark:text-[#FBBF24]",
+              PUT: "text-[#2563EB] bg-[#EFF6FF] dark:bg-[#0A192F] dark:text-[#60A5FA]",
+              PATCH: "text-[#7C3AED] bg-[#F5F3FF] dark:bg-[#1E1035] dark:text-[#A78BFA]",
+              DELETE: "text-[#DC2626] bg-[#FEE2E2] dark:bg-[#2A1517] dark:text-[#F87171]",
+              HEAD: "text-[#4B5563] bg-[#F3F4F6] dark:bg-[#1F2937] dark:text-[#9CA3AF]",
+              OPTIONS: "text-[#4B5563] bg-[#F3F4F6] dark:bg-[#1F2937] dark:text-[#9CA3AF]",
+            };
+
+            return (
+              <div
+                key={req._id}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onSelectRequest) onSelectRequest(req, node);
+                }}
+                style={{ paddingLeft: `${Math.max((level + 1) * 8 + 8, 12)}px` }}
+                className={`group flex items-center justify-between py-1 pr-2 rounded-md text-xs transition-all cursor-pointer ${
+                  isReqSelected
+                    ? "bg-[#FF6D1F]/15 dark:bg-[#FF6D1F]/20 text-[#FF6D1F] font-semibold border-l-2 border-[#FF6D1F]"
+                    : "text-[#222222] dark:text-[#F5F5F7] hover:bg-[#F5E7C6]/50 dark:hover:bg-[#1C1C1F]"
+                }`}
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <span
+                    className={`px-1.5 py-0.2 text-[9px] font-mono font-bold rounded shrink-0 ${
+                      methodColors[req.method] || methodColors.GET
+                    }`}
+                  >
+                    {req.method || "GET"}
+                  </span>
+                  <span className="truncate text-[11px] font-medium" title={req.name}>
+                    {req.name}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
