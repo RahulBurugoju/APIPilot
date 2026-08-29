@@ -2,6 +2,33 @@ import mongoose from "mongoose";
 import Collection from "../models/collection.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import Project from "../models/project.model.js";
+const isDescendant = async ({
+  collectionId,
+  potentialParentId,
+  projectId,
+}) => {
+  let currentId = potentialParentId;
+
+  while (currentId) {
+    const current = await Collection.findOne({
+      _id: currentId,
+      project: projectId,
+    }).select("parent");
+
+    if (!current) {
+      return false;
+    }
+
+    if (current._id.toString() === collectionId.toString()) {
+      return true;
+    }
+
+    currentId = current.parent;
+  }
+
+  return false;
+};
+
 const createCollection = async ({
   name,
   description,
@@ -24,6 +51,19 @@ const createCollection = async ({
     }
   }
 
+  if (parent) {
+    if (!mongoose.Types.ObjectId.isValid(parent)) {
+      throw new ApiError(400, "Invalid parent collection ID format");
+    }
+    const parentCollection = await Collection.findOne({
+      _id: parent,
+      project,
+    });
+    if (!parentCollection) {
+      throw new ApiError(400, "Invalid parent collection");
+    }
+  }
+
   const collection = await Collection.create({
     name,
     description,
@@ -37,9 +77,9 @@ const createCollection = async ({
   }
   return collection;
 };
+
 // todo check if the project owner == userID
 const getProjectCollections = async ({ projectId, userId }) => {
-
   const project = await Project.findById(projectId);
   if (!project) {
     throw new ApiError(404, "No collections found for this project");
@@ -66,6 +106,35 @@ const updateCollection = async ({
 }) => {
   if (!mongoose.Types.ObjectId.isValid(collectionId)) {
     throw new ApiError(400, "Invalid collection ID format");
+  }
+
+  if (parent) {
+    if (!mongoose.Types.ObjectId.isValid(parent)) {
+      throw new ApiError(400, "Invalid parent collection ID format");
+    }
+
+    if (parent.toString() === collectionId.toString()) {
+      throw new ApiError(400, "Collection cannot be its own parent");
+    }
+
+    const parentCollection = await Collection.findOne({
+      _id: parent,
+      project: projectId,
+    });
+
+    if (!parentCollection) {
+      throw new ApiError(400, "Invalid parent collection");
+    }
+
+    if (
+      await isDescendant({
+        collectionId,
+        potentialParentId: parent,
+        projectId,
+      })
+    ) {
+      throw new ApiError(400, "Invalid collection hierarchy");
+    }
   }
 
   const updateData = {};
@@ -110,4 +179,5 @@ export default {
   updateCollection,
   deleteCollection,
 };
+
 
