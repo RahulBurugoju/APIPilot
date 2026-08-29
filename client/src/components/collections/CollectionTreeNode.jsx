@@ -30,13 +30,15 @@ export function CollectionTreeNode({
 }) {
   const isExpanded = expandedNodes[node._id] ?? false;
   const isSelected = selectedCollectionId && String(selectedCollectionId) === String(node._id);
-  const hasChildren = node.children && node.children.length > 0;
 
   const nodeRequests = Array.isArray(requests)
     ? requests.filter(
         (req) => req.collection && String(req.collection) === String(node._id)
       )
     : [];
+  const hasSubCollections = node.children && node.children.length > 0;
+  const hasRequests = nodeRequests.length > 0;
+  const canExpand = hasSubCollections || hasRequests;
 
   return (
     <div className="select-none space-y-0.5">
@@ -55,7 +57,7 @@ export function CollectionTreeNode({
         {/* Left Side: Expand Chevron + Folder Icon + Title */}
         <div className="flex items-center gap-1.5 min-w-0 flex-1">
           {/* Chevron expand/collapse toggle */}
-          {hasChildren ? (
+          {canExpand ? (
             <button
               type="button"
               onClick={(e) => {
@@ -77,10 +79,8 @@ export function CollectionTreeNode({
           {/* Folder Icon */}
           <div
             onClick={(e) => {
-              if (hasChildren) {
-                e.stopPropagation();
-                toggleExpand(node._id);
-              }
+              e.stopPropagation();
+              toggleExpand(node._id);
             }}
             className="shrink-0 text-[#FF6D1F]"
           >
@@ -96,10 +96,10 @@ export function CollectionTreeNode({
             {node.name}
           </span>
 
-          {/* Child Count Badge if any */}
-          {hasChildren && (
+          {/* Total Child Items Badge if any */}
+          {canExpand && (
             <span className="px-1.5 py-0.2 text-[10px] font-mono rounded-full bg-[#FAF3E1] dark:bg-[#1C1C1F] text-[#8C8C8C] dark:text-[#6E6E73] border border-[#E6D2A5] dark:border-[#2C2C2E]">
-              {node.children.length}
+              {(node.children?.length || 0) + nodeRequests.length}
             </span>
           )}
         </div>
@@ -168,7 +168,7 @@ export function CollectionTreeNode({
       {isExpanded && (
         <div className="border-l border-[#E6D2A5]/40 dark:border-[#2C2C2E] ml-4 space-y-0.5">
           {/* 1. Sub-collections */}
-          {hasChildren &&
+          {hasSubCollections &&
             node.children.map((child) => (
               <CollectionTreeNode
                 key={child._id}
