@@ -13,8 +13,21 @@ const getProjectCollections = async ({ projectId }) => {
   return response.data;
 };
 
+const updateCollection = async({projectId,collectionId,collectionDetails})=>{
+
+  const response =  await api.patch(`/projects/${projectId}/collections/${collectionId}`,collectionDetails)
+
+  return response.data
+}
+
+const deleteCollection = async({projectId,collectionId})=>{
+   const response = await api.delete(`/projects/${projectId}/collections/${collectionId}`)
+   return response.data
+}
 
 export default {
     createCollection,
-    getProjectCollections
+    getProjectCollections,
+    updateCollection,
+    deleteCollection
 }

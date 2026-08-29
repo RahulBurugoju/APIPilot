@@ -61,7 +61,7 @@ const updateCollection = asyncHandler(async (req, res) => {
 
 const deleteCollection = asyncHandler(async(req,res) => {
   const {projectId, collectionId} = req.params;
-  
+
   const deletedCollection = await collectionService.deleteCollection({
     collectionId,
     projectId
@@ -69,7 +69,7 @@ const deleteCollection = asyncHandler(async(req,res) => {
   return res
     .status(200)
     .json(
-      new ApiResponse(200, { deletedCollection }, "Collection deleted successfully")
+      new ApiResponse(200, { deletedCollectionId:deletedCollection?._id }, "Collection deleted successfully")
     );
 })
 
