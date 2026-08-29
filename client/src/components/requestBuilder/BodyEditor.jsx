@@ -72,31 +72,36 @@ function BodyEditor({
 
   return (
     <div className="space-y-3 w-full">
-      {/* Top Selector Bar */}
-      <div className="flex items-center justify-between gap-3 pb-1 border-b border-[#FAF3E1] dark:border-[#1F1F23]">
-        <div className="flex items-center gap-2">
-          <label
-            htmlFor="body-type-select"
-            className="text-xs font-medium text-[#5C5C5C] dark:text-[#A1A1A6] select-none"
-          >
-            Body type:
-          </label>
-          <select
-            id="body-type-select"
-            value={activeType}
-            onChange={(e) => handleTypeChange(e.target.value)}
-            className="px-2.5 py-1.5 rounded-md bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] text-xs font-mono font-semibold text-[#FF6D1F] focus:outline-none focus:ring-1 focus:ring-[#FF6D1F] cursor-pointer shadow-2xs"
-          >
-            {BODY_TYPES.map((bt) => (
-              <option
+      {/* Top Selector Bar (Postman-style Radio Buttons) */}
+      <div className="flex items-center justify-between gap-3 pb-2 border-b border-[#FAF3E1] dark:border-[#1F1F23] flex-wrap">
+        <div className="flex items-center gap-4 text-xs flex-wrap">
+          {BODY_TYPES.map((bt) => {
+            const isSelected = activeType === bt.value;
+            return (
+              <label
                 key={bt.value}
-                value={bt.value}
-                className="font-sans font-normal text-[#222222] dark:text-[#F5F5F7] bg-[#FFFFFF] dark:bg-[#141416]"
+                className="inline-flex items-center gap-1.5 cursor-pointer select-none group"
               >
-                {bt.label}
-              </option>
-            ))}
-          </select>
+                <input
+                  type="radio"
+                  name="bodyTypeRadio"
+                  value={bt.value}
+                  checked={isSelected}
+                  onChange={() => handleTypeChange(bt.value)}
+                  className="w-3.5 h-3.5 accent-[#FF6D1F] text-[#FF6D1F] focus:ring-[#FF6D1F] cursor-pointer"
+                />
+                <span
+                  className={`transition-colors ${
+                    isSelected
+                      ? "font-semibold text-[#FF6D1F]"
+                      : "text-[#5C5C5C] dark:text-[#A1A1A6] group-hover:text-[#222222] dark:group-hover:text-[#F5F5F7]"
+                  }`}
+                >
+                  {bt.label}
+                </span>
+              </label>
+            );
+          })}
         </div>
 
         {/* Prettify Action if JSON */}

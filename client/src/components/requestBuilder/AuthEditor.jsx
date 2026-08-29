@@ -66,8 +66,8 @@ function AuthEditor({ auth, onChange }) {
 
   return (
     <div className="space-y-4 w-full max-w-xl">
-      {/* Header & Type Selector */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#FAF3E1] dark:border-[#1F1F23]">
+      {/* Header & Type Selector (Postman-style Radio Buttons) */}
+      <div className="space-y-2.5 pb-3 border-b border-[#FAF3E1] dark:border-[#1F1F23]">
         <div>
           <h3 className="text-xs font-semibold text-[#222222] dark:text-[#F5F5F7]">
             Authorization
@@ -77,29 +77,37 @@ function AuthEditor({ auth, onChange }) {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <label
-            htmlFor="auth-type-select"
-            className="text-xs font-medium text-[#5C5C5C] dark:text-[#A1A1A6] select-none shrink-0"
-          >
+        <div className="flex items-center gap-4 text-xs flex-wrap pt-1">
+          <span className="font-medium text-[#5C5C5C] dark:text-[#A1A1A6] select-none">
             Type:
-          </label>
-          <select
-            id="auth-type-select"
-            value={currentAuth.type}
-            onChange={(e) => handleTypeChange(e.target.value)}
-            className="px-3 py-1.5 rounded-md bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] text-xs font-mono font-semibold text-[#FF6D1F] focus:outline-none focus:ring-1 focus:ring-[#FF6D1F] cursor-pointer shadow-2xs"
-          >
-            {AUTH_TYPES.map((at) => (
-              <option
+          </span>
+          {AUTH_TYPES.map((at) => {
+            const isSelected = currentAuth.type === at.value;
+            return (
+              <label
                 key={at.value}
-                value={at.value}
-                className="font-sans font-normal text-[#222222] dark:text-[#F5F5F7] bg-[#FFFFFF] dark:bg-[#141416]"
+                className="inline-flex items-center gap-1.5 cursor-pointer select-none group"
               >
-                {at.label}
-              </option>
-            ))}
-          </select>
+                <input
+                  type="radio"
+                  name="authTypeRadio"
+                  value={at.value}
+                  checked={isSelected}
+                  onChange={() => handleTypeChange(at.value)}
+                  className="w-3.5 h-3.5 accent-[#FF6D1F] text-[#FF6D1F] focus:ring-[#FF6D1F] cursor-pointer"
+                />
+                <span
+                  className={`transition-colors ${
+                    isSelected
+                      ? "font-semibold text-[#FF6D1F]"
+                      : "text-[#5C5C5C] dark:text-[#A1A1A6] group-hover:text-[#222222] dark:group-hover:text-[#F5F5F7]"
+                  }`}
+                >
+                  {at.label}
+                </span>
+              </label>
+            );
+          })}
         </div>
       </div>
 
