@@ -19,8 +19,9 @@ router
   .get(collectionController.getProjectCollections);
 
 
-router.route("/collections/:collectionId")
+router.route("/:collectionId")
   .all(verifyProjectOwner)
-  .patch(validate(updateCollectionSchema), collectionController.updateCollection);
+  .patch( collectionController.updateCollection);
+
 
 export default router;

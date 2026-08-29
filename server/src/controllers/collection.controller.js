@@ -40,19 +40,28 @@ const getProjectCollections = asyncHandler(async (req, res) => {
 });
 
 const updateCollection = asyncHandler(async (req, res) => {
-  const userId = req.user.Id;
   const { projectId, collectionId } = req.params;
   const { name, description, parent, order } = req.body;
 
-  const updatedCollection = await collectionService.updateCollection({ collectionId, name, description, projectId, parent, order })
+  const updatedCollection = await collectionService.updateCollection({
+    collectionId,
+    projectId,
+    name,
+    description,
+    parent,
+    order,
+  });
 
-  return res.status(200).json(new ApiResponse(200, { updatedCollection }, "Collection updated successfully"))
-})
-
-
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, { updatedCollection }, "Collection updated successfully")
+    );
+});
 
 export default {
   createCollection,
   getProjectCollections,
-  updateCollection
+  updateCollection,
 };
+
