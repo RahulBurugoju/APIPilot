@@ -32,6 +32,48 @@ const requestSlice = createSlice({
         clearCurrentRequest: (state) => {
             state.currentRequest = null;
         },
+        setCurrentRequestMethod: (state, action) => {
+            const newMethod = action.payload;
+            if (state.currentRequest) {
+                state.currentRequest.method = newMethod;
+                if (Array.isArray(state.requests)) {
+                    const idx = state.requests.findIndex(
+                        (r) => String(r._id) === String(state.currentRequest._id)
+                    );
+                    if (idx !== -1) {
+                        state.requests[idx].method = newMethod;
+                    }
+                }
+            }
+        },
+        setCurrentRequestUrl: (state, action) => {
+            const newUrl = action.payload;
+            if (state.currentRequest) {
+                state.currentRequest.url = newUrl;
+                if (Array.isArray(state.requests)) {
+                    const idx = state.requests.findIndex(
+                        (r) => String(r._id) === String(state.currentRequest._id)
+                    );
+                    if (idx !== -1) {
+                        state.requests[idx].url = newUrl;
+                    }
+                }
+            }
+        },
+        setCurrentRequestQueryParams: (state, action) => {
+            const newParams = action.payload;
+            if (state.currentRequest) {
+                state.currentRequest.queryParams = newParams;
+                if (Array.isArray(state.requests)) {
+                    const idx = state.requests.findIndex(
+                        (r) => String(r._id) === String(state.currentRequest._id)
+                    );
+                    if (idx !== -1) {
+                        state.requests[idx].queryParams = newParams;
+                    }
+                }
+            }
+        },
         setCurrentRequestAuth: (state, action) => {
             if (state.currentRequest) {
                 state.currentRequest.auth = action.payload;
@@ -241,6 +283,9 @@ export const {
     clearRequestError,
     setCurrentRequest,
     clearCurrentRequest,
+    setCurrentRequestMethod,
+    setCurrentRequestUrl,
+    setCurrentRequestQueryParams,
     setCurrentRequestAuth,
     updateCurrentRequestAuthField,
 } = requestSlice.actions;

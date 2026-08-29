@@ -16,8 +16,13 @@ import {
   Trash2,
   Loader2,
 } from "lucide-react";
-import { clearCurrentRequest } from "../../features/request/requestSlice.js";
+import {
+  clearCurrentRequest,
+  setCurrentRequestUrl,
+  setCurrentRequestQueryParams,
+} from "../../features/request/requestSlice.js";
 import requestThunk from "../../features/request/request.Thunk.js";
+import RequestHeader from "../requestBuilder/RequestHeader.jsx";
 
 function RequestCenter({ project, request, onNewRequest }) {
   const dispatch = useDispatch();
@@ -118,17 +123,22 @@ function RequestCenter({ project, request, onNewRequest }) {
   };
 
   const handleAddParam = () => {
-    setQueryParams([...queryParams, { key: "", value: "", enabled: true }]);
+    const updated = [...queryParams, { key: "", value: "", enabled: true }];
+    setQueryParams(updated);
+    dispatch(setCurrentRequestQueryParams(updated));
   };
 
   const handleUpdateParam = (index, field, val) => {
     const updated = [...queryParams];
     updated[index] = { ...updated[index], [field]: val };
     setQueryParams(updated);
+    dispatch(setCurrentRequestQueryParams(updated));
   };
 
   const handleDeleteParam = (index) => {
-    setQueryParams(queryParams.filter((_, i) => i !== index));
+    const updated = queryParams.filter((_, i) => i !== index);
+    setQueryParams(updated);
+    dispatch(setCurrentRequestQueryParams(updated));
   };
 
   const handleCloseTab = () => {
@@ -233,43 +243,19 @@ function RequestCenter({ project, request, onNewRequest }) {
 
       {/* 2. Main Request & Response Split Area */}
       <div className="flex-1 flex flex-col overflow-y-auto p-4 sm:p-5 space-y-4">
-        {/* URL / Method Bar */}
-        <div className="flex items-center gap-2">
-          {/* Method Select */}
-          <select
-            value={method}
-            onChange={(e) => setMethod(e.target.value)}
-            className="px-3 py-2 rounded-md bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] text-xs font-mono font-bold text-[#FF6D1F] focus:outline-none focus:ring-1 focus:ring-[#FF6D1F] cursor-pointer shrink-0 shadow-xs"
-          >
-            <option value="GET">GET</option>
-            <option value="POST">POST</option>
-            <option value="PUT">PUT</option>
-            <option value="PATCH">PATCH</option>
-            <option value="DELETE">DELETE</option>
-            <option value="HEAD">HEAD</option>
-            <option value="OPTIONS">OPTIONS</option>
-          </select>
-
-          {/* URL Input Bar */}
-          <div className="flex-1 relative">
-            <input
-              type="text"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder="e.g. /auth/login or https://api.example.com/v1"
-              className="w-full px-3.5 py-2 rounded-md bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] text-xs font-mono text-[#222222] dark:text-[#F5F5F7] placeholder-[#8C8C8C] dark:placeholder-[#6E6E73] focus:outline-none focus:border-[#FF6D1F] focus:ring-1 focus:ring-[#FF6D1F] transition-colors shadow-xs"
-            />
-          </div>
-
-          {/* Send CTA Button */}
-          <button
-            type="button"
-            className="flex items-center gap-1.5 px-5 py-2 rounded-md bg-[#FF6D1F] hover:bg-[#E85B0F] text-white text-xs font-medium transition-colors shadow-sm cursor-pointer shrink-0"
-          >
-            <Send className="w-3.5 h-3.5" />
-            <span>Send</span>
-          </button>
-        </div>
+        {/* Request Header Bar (Method, URL, Send) */}
+        <RequestHeader
+          method={method}
+          url={url}
+          onMethodChange={(newMethod) => {
+            setMethod(newMethod);
+          }}
+          onUrlChange={(newUrl) => {
+            setUrl(newUrl);
+          }}
+          onSend={handleSave}
+          isSending={isSaving}
+        />
 
         {/* Request Tabs & Body Editor */}
         <div className="rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] shadow-xs flex flex-col">
