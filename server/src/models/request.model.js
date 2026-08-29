@@ -90,6 +90,58 @@ const requestSchema = new mongoose.Schema({
             default: "",
         },
     },
+    auth: {
+  type: {
+    type: String,
+    enum: [
+      "none",
+      "bearer",
+      "basic",
+      "api-key",
+    ],
+    default: "none",
+  },
+
+  bearer: {
+    token: {
+      type: String,
+      default: "",
+    },
+  },
+
+  basic: {
+    username: {
+      type: String,
+      default: "",
+    },
+
+    password: {
+      type: String,
+      default: "",
+    },
+  },
+
+  apiKey: {
+    key: {
+      type: String,
+      default: "",
+    },
+
+    value: {
+      type: String,
+      default: "",
+    },
+
+    location: {
+      type: String,
+      enum: [
+        "header",
+        "query",
+      ],
+      default: "header",
+    },
+  },
+},
     order: {
         type: Number,
         default: 0,
