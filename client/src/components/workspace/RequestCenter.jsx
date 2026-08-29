@@ -4,16 +4,11 @@ import {
   Send,
   Plus,
   X,
-  Code2,
-  SlidersHorizontal,
-  Shield,
-  FileText,
   Copy,
   Check,
   CheckCircle2,
   Clock,
   Save,
-  Trash2,
   Loader2,
 } from "lucide-react";
 import {
@@ -24,6 +19,8 @@ import {
 import requestThunk from "../../features/request/request.Thunk.js";
 import RequestHeader from "../requestBuilder/RequestHeader.jsx";
 import RequestTabs from "../requestBuilder/RequestTabs.jsx";
+import ParamsEditor from "../requestBuilder/ParamsEditor.jsx";
+import HeadersEditor from "../requestBuilder/HeadersEditor.jsx";
 
 function RequestCenter({ project, request, onNewRequest }) {
   const dispatch = useDispatch();
@@ -106,40 +103,6 @@ function RequestCenter({ project, request, onNewRequest }) {
     } finally {
       setIsSaving(false);
     }
-  };
-
-  // Header / Param handlers
-  const handleAddHeader = () => {
-    setHeaders([...headers, { key: "", value: "", enabled: true }]);
-  };
-
-  const handleUpdateHeader = (index, field, val) => {
-    const updated = [...headers];
-    updated[index] = { ...updated[index], [field]: val };
-    setHeaders(updated);
-  };
-
-  const handleDeleteHeader = (index) => {
-    setHeaders(headers.filter((_, i) => i !== index));
-  };
-
-  const handleAddParam = () => {
-    const updated = [...queryParams, { key: "", value: "", enabled: true }];
-    setQueryParams(updated);
-    dispatch(setCurrentRequestQueryParams(updated));
-  };
-
-  const handleUpdateParam = (index, field, val) => {
-    const updated = [...queryParams];
-    updated[index] = { ...updated[index], [field]: val };
-    setQueryParams(updated);
-    dispatch(setCurrentRequestQueryParams(updated));
-  };
-
-  const handleDeleteParam = (index) => {
-    const updated = queryParams.filter((_, i) => i !== index);
-    setQueryParams(updated);
-    dispatch(setCurrentRequestQueryParams(updated));
   };
 
   const handleCloseTab = () => {
@@ -276,134 +239,23 @@ function RequestCenter({ project, request, onNewRequest }) {
           <div className="p-3">
             {/* PARAMS TAB */}
             {activeReqTab === "params" && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-[#8C8C8C] dark:text-[#6E6E73] font-mono">
-                    Query Parameters
-                  </span>
-                  <button
-                    type="button"
-                    onClick={handleAddParam}
-                    className="inline-flex items-center gap-1 text-[11px] text-[#FF6D1F] hover:underline font-medium cursor-pointer"
-                  >
-                    <Plus className="w-3 h-3" />
-                    <span>Add Parameter</span>
-                  </button>
-                </div>
-
-                {queryParams.length === 0 ? (
-                  <div className="p-4 text-center text-xs text-[#8C8C8C] dark:text-[#6E6E73] font-mono">
-                    No query parameters configured.
-                  </div>
-                ) : (
-                  <div className="space-y-1.5">
-                    {queryParams.map((param, idx) => (
-                      <div key={idx} className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={param.enabled ?? true}
-                          onChange={(e) =>
-                            handleUpdateParam(idx, "enabled", e.target.checked)
-                          }
-                          className="rounded border-[#E6D2A5] text-[#FF6D1F] focus:ring-[#FF6D1F] cursor-pointer"
-                        />
-                        <input
-                          type="text"
-                          placeholder="Key"
-                          value={param.key || ""}
-                          onChange={(e) =>
-                            handleUpdateParam(idx, "key", e.target.value)
-                          }
-                          className="flex-1 px-2.5 py-1.5 rounded-md bg-[#FAF3E1]/40 dark:bg-[#0B0B0D] border border-[#E6D2A5]/60 dark:border-[#2C2C2E] text-xs font-mono text-[#222222] dark:text-[#F5F5F7] focus:outline-none focus:border-[#FF6D1F]"
-                        />
-                        <input
-                          type="text"
-                          placeholder="Value"
-                          value={param.value || ""}
-                          onChange={(e) =>
-                            handleUpdateParam(idx, "value", e.target.value)
-                          }
-                          className="flex-1 px-2.5 py-1.5 rounded-md bg-[#FAF3E1]/40 dark:bg-[#0B0B0D] border border-[#E6D2A5]/60 dark:border-[#2C2C2E] text-xs font-mono text-[#222222] dark:text-[#F5F5F7] focus:outline-none focus:border-[#FF6D1F]"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteParam(idx)}
-                          className="p-1 text-[#8C8C8C] hover:text-[#DC2626] rounded transition-colors cursor-pointer"
-                          title="Remove Parameter"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <ParamsEditor
+                params={queryParams}
+                onChange={(updated) => {
+                  setQueryParams(updated);
+                  dispatch(setCurrentRequestQueryParams(updated));
+                }}
+              />
             )}
 
             {/* HEADERS TAB */}
             {activeReqTab === "headers" && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-[#8C8C8C] dark:text-[#6E6E73] font-mono">
-                    Headers
-                  </span>
-                  <button
-                    type="button"
-                    onClick={handleAddHeader}
-                    className="inline-flex items-center gap-1 text-[11px] text-[#FF6D1F] hover:underline font-medium cursor-pointer"
-                  >
-                    <Plus className="w-3 h-3" />
-                    <span>Add Header</span>
-                  </button>
-                </div>
-
-                {headers.length === 0 ? (
-                  <div className="p-4 text-center text-xs text-[#8C8C8C] dark:text-[#6E6E73] font-mono">
-                    No custom headers configured.
-                  </div>
-                ) : (
-                  <div className="space-y-1.5">
-                    {headers.map((hdr, idx) => (
-                      <div key={idx} className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={hdr.enabled ?? true}
-                          onChange={(e) =>
-                            handleUpdateHeader(idx, "enabled", e.target.checked)
-                          }
-                          className="rounded border-[#E6D2A5] text-[#FF6D1F] focus:ring-[#FF6D1F] cursor-pointer"
-                        />
-                        <input
-                          type="text"
-                          placeholder="Header Key (e.g. Content-Type)"
-                          value={hdr.key || ""}
-                          onChange={(e) =>
-                            handleUpdateHeader(idx, "key", e.target.value)
-                          }
-                          className="flex-1 px-2.5 py-1.5 rounded-md bg-[#FAF3E1]/40 dark:bg-[#0B0B0D] border border-[#E6D2A5]/60 dark:border-[#2C2C2E] text-xs font-mono text-[#222222] dark:text-[#F5F5F7] focus:outline-none focus:border-[#FF6D1F]"
-                        />
-                        <input
-                          type="text"
-                          placeholder="Header Value (e.g. application/json)"
-                          value={hdr.value || ""}
-                          onChange={(e) =>
-                            handleUpdateHeader(idx, "value", e.target.value)
-                          }
-                          className="flex-1 px-2.5 py-1.5 rounded-md bg-[#FAF3E1]/40 dark:bg-[#0B0B0D] border border-[#E6D2A5]/60 dark:border-[#2C2C2E] text-xs font-mono text-[#222222] dark:text-[#F5F5F7] focus:outline-none focus:border-[#FF6D1F]"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteHeader(idx)}
-                          className="p-1 text-[#8C8C8C] hover:text-[#DC2626] rounded transition-colors cursor-pointer"
-                          title="Remove Header"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <HeadersEditor
+                headers={headers}
+                onChange={(updated) => {
+                  setHeaders(updated);
+                }}
+              />
             )}
 
             {/* BODY TAB */}
