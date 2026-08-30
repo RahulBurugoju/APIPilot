@@ -93,9 +93,12 @@ export default function RequestHistoryViewer({
   project,
   onBack,
   onLoadIntoEditor,
+  onRunAgain,
+  onClearHistory,
 }) {
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [activeViewTab, setActiveViewTab] = useState("response"); // 'response' | 'snapshot'
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   if (!execution) {
     return (
@@ -148,8 +151,23 @@ export default function RequestHistoryViewer({
     }
   };
 
+  const handleRunAgainClick = () => {
+    if (onRunAgain) {
+      onRunAgain();
+    } else if (onLoadIntoEditor) {
+      handleLoadRequest();
+    }
+  };
+
+  const handleConfirmClear = () => {
+    setShowClearConfirm(false);
+    if (onClearHistory) {
+      onClearHistory();
+    }
+  };
+
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#FAF3E1]/30 dark:bg-[#101012] overflow-hidden">
+    <div className="flex-1 flex flex-col h-full bg-[#FAF3E1]/30 dark:bg-[#101012] overflow-hidden relative">
       {/* Top Header */}
       <div className="p-4 bg-[#FFFFFF] dark:bg-[#141416] border-b border-[#E6D2A5] dark:border-[#2C2C2E] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
         <div className="flex items-center gap-3">
@@ -169,17 +187,59 @@ export default function RequestHistoryViewer({
           </h2>
         </div>
 
-        {onLoadIntoEditor && (
+        {/* Header Action Buttons: Run Again & Clear History */}
+        <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={handleLoadRequest}
+            onClick={handleRunAgainClick}
             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#FF6D1F] hover:bg-[#E85B0F] text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+            title="Execute current request with latest URL, headers & environment"
           >
             <Play className="w-3.5 h-3.5 fill-current" />
-            <span>Load into Request Editor</span>
+            <span>Run Again</span>
           </button>
-        )}
+
+          {onClearHistory && (
+            <button
+              type="button"
+              onClick={() => setShowClearConfirm(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#FAF3E1] dark:bg-[#1C1C1F] hover:bg-[#FEF2F2] dark:hover:bg-[#200B0D] text-[#DC2626] dark:text-[#F87171] border border-[#E6D2A5] dark:border-[#2C2C2E] text-xs font-semibold transition-colors cursor-pointer"
+            >
+              <span>Clear History</span>
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Confirmation Modal for Clear History */}
+      {showClearConfirm && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+          <div className="bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] rounded-xl p-5 max-w-sm w-full shadow-xl space-y-4">
+            <h3 className="text-sm font-bold text-[#222222] dark:text-[#F5F5F7]">
+              Clear all request history?
+            </h3>
+            <p className="text-xs text-[#8C8C8C] dark:text-[#6E6E73]">
+              This cannot be undone. All execution history records for this request will be permanently removed.
+            </p>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowClearConfirm(false)}
+                className="px-3.5 py-1.5 rounded-lg border border-[#E6D2A5] dark:border-[#2C2C2E] text-xs font-medium text-[#222222] dark:text-[#F5F5F7] hover:bg-[#FAF3E1] dark:hover:bg-[#1C1C1F] transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmClear}
+                className="px-3.5 py-1.5 rounded-lg bg-[#DC2626] hover:bg-[#B91C1C] text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+              >
+                Clear History
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Execution Overview Grid */}
       <div className="p-4 bg-[#FFFFFF]/90 dark:bg-[#141416]/90 border-b border-[#E6D2A5] dark:border-[#2C2C2E] shrink-0">

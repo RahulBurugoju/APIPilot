@@ -130,7 +130,36 @@ const requestHistorySlice = createSlice({
       .addCase(clearHistory.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      });
+      })
+
+      // Automatically unshift newly executed request into history state
+      .addMatcher(
+        (action) => action.type === "request/executeRequest/fulfilled",
+        (state, action) => {
+          const result =
+            action.payload?.data?.result ||
+            action.payload?.result ||
+            action.payload;
+          if (result) {
+            const newExecution = {
+              _id: result.executionId || "exec_" + Date.now(),
+              success: result.status >= 200 && result.status < 400,
+              response: {
+                status: result.status,
+                statusText: result.statusText,
+                headers: result.headers,
+                data: result.data,
+                duration: result.duration,
+                size: result.size,
+              },
+              requestSnapshot: result.request || {},
+              createdAt: new Date().toISOString(),
+            };
+            state.executions = [newExecution, ...(state.executions || [])];
+            state.pagination.total = (state.pagination.total || 0) + 1;
+          }
+        }
+      );
   },
 });
 

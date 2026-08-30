@@ -17,6 +17,7 @@ import environmentThunks from "../../features/environment/environment.thunk.js";
 import EnvironmentSelector from "../../components/environments/EnvironmentSelector";
 import EnvironmentEditor from "../../components/environments/EnvironmentEditor";
 import RequestHistoryViewer from "../../components/history/RequestHistoryViewer";
+import { clearHistory } from "../../features/requestHistory/requestHistory.thunk.js";
 import {
   Folder,
   Clock,
@@ -381,6 +382,31 @@ function ProjectWorkspacePage() {
                 dispatch(setCurrentRequest(req));
                 setSelectedExecutionHistory(null);
                 setActiveView("request");
+              }}
+              onRunAgain={() => {
+                setSelectedExecutionHistory(null);
+                setActiveView("request");
+                if (currentRequest && currentProject) {
+                  dispatch(
+                    requestThunk.executeRequest({
+                      projectId: currentProject._id,
+                      collectionId:
+                        currentRequest.collection?._id ||
+                        currentRequest.collection,
+                      requestId: currentRequest._id,
+                    })
+                  );
+                }
+              }}
+              onClearHistory={() => {
+                if (currentProject && currentRequest) {
+                  dispatch(
+                    clearHistory({
+                      projectId: currentProject._id,
+                      requestId: currentRequest._id,
+                    })
+                  );
+                }
               }}
             />
           )}

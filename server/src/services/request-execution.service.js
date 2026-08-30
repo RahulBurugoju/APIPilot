@@ -361,15 +361,30 @@ const executeRequest = async ({
         }
     }
 
-    // 6. Build Request Snapshot
+    // Helper for sensitive-value redaction in execution history snapshots
+    const redactSensitiveValue = (val) => {
+        if (!val || typeof val !== "string") return val;
+        if (val.length <= 6) return "******";
+        return val.substring(0, 3) + "******" + val.substring(val.length - 2);
+    };
+
+    // 6. Build Request Snapshot with Sensitive-Value Redaction
     const requestSnapshot = {
         method: request.method,
         url,
-        headers: (request.headers || []).map((h) => ({
-            key: h.key || "",
-            value: h.value || "",
-            enabled: h.enabled !== false,
-        })),
+        headers: (request.headers || []).map((h) => {
+            const keyLower = (h.key || "").toLowerCase();
+            const isSensitive =
+                keyLower === "authorization" ||
+                keyLower === "x-api-key" ||
+                keyLower.includes("secret") ||
+                keyLower.includes("token");
+            return {
+                key: h.key || "",
+                value: isSensitive && h.value ? redactSensitiveValue(h.value) : (h.value || ""),
+                enabled: h.enabled !== false,
+            };
+        }),
         queryParams: (request.queryParams || []).map((q) => ({
             key: q.key || "",
             value: q.value || "",
@@ -383,19 +398,25 @@ const executeRequest = async ({
             type: request.auth?.type || "none",
             bearer: request.auth?.bearer
                 ? {
-                      token: request.auth.bearer.token || "",
+                      token: request.auth.bearer.token
+                          ? redactSensitiveValue(request.auth.bearer.token)
+                          : "",
                   }
                 : undefined,
             basic: request.auth?.basic
                 ? {
                       username: request.auth.basic.username || "",
-                      password: request.auth.basic.password || "",
+                      password: request.auth.basic.password
+                          ? "[REDACTED]"
+                          : "",
                   }
                 : undefined,
             apiKey: request.auth?.apiKey
                 ? {
                       key: request.auth.apiKey.key || "",
-                      value: request.auth.apiKey.value || "",
+                      value: request.auth.apiKey.value
+                          ? redactSensitiveValue(request.auth.apiKey.value)
+                          : "",
                       location: request.auth.apiKey.location || "header",
                   }
                 : undefined,
