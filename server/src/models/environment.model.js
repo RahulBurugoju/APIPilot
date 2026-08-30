@@ -37,7 +37,7 @@ const environmentSchema = new mongoose.Schema({
         required: true,
         index: true,
     },
-    variable: {
+    variables: {
 
         type: [envronmentVariableSchema],
         default: [],
