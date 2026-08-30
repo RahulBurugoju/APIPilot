@@ -230,6 +230,9 @@ const executeRequest = async ({
         queryParams: resolvedQueryParams,
     });
 
+    const queryParams = authentication.queryParams;
+    const headers = authentication.headers;
+
     // 5. Resolve Body
     const body = buildRequestBody({
         body: request.body,
@@ -360,3 +363,7 @@ const executeRequest = async ({
 export {
     executeRequest
 };
+
+// export default {
+//     executeRequest
+// };
