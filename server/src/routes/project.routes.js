@@ -1,6 +1,7 @@
 import { Router } from "express";
 import projectController from "../controllers/project.controller.js";
 import collectionRouter from "./collection.routes.js";
+import environmentRouter from "./environment.routes.js";
 import { validate } from "../middlewares/validate.middleware.js";
 import {
   createProjectSchema,
@@ -13,6 +14,8 @@ router.use(authenticate);
 
 // Project Collection Nested Routes
 router.use("/:projectId/collections", collectionRouter);
+//Project Environments Nested Routes
+router.use("/:projectId/environments", environmentRouter);
 
 // Project Routes
 router
