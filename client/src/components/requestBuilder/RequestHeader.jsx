@@ -65,7 +65,12 @@ function RequestHeader({
 
   const handleUrlChange = (e) => {
     let newUrl = e.target.value;
-    if (baseUrl) {
+    if (
+      baseUrl &&
+      !newUrl.trim().startsWith("{{") &&
+      !newUrl.trim().startsWith("http://") &&
+      !newUrl.trim().startsWith("https://")
+    ) {
       newUrl = extractEndpointPath(newUrl, baseUrl);
     }
     dispatch(setCurrentRequestUrl(newUrl));
@@ -102,6 +107,12 @@ function RequestHeader({
     setTimeout(() => setCopiedUrl(false), 2000);
   };
 
+  const showBaseUrlPrefix =
+    Boolean(baseUrl) &&
+    !activeUrl.trim().startsWith("http://") &&
+    !activeUrl.trim().startsWith("https://") &&
+    !activeUrl.trim().startsWith("{{");
+
   return (
     <div className="w-full space-y-1.5">
       <div className="flex items-center gap-2 w-full">
@@ -131,7 +142,7 @@ function RequestHeader({
 
         {/* 2. URL Endpoint Input with Base URL Prefix */}
         <div className="flex-1 flex items-center rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] focus-within:border-[#FF6D1F] focus-within:ring-2 focus-within:ring-[#FF6D1F]/20 shadow-xs transition-all overflow-hidden h-9">
-          {baseUrl ? (
+          {showBaseUrlPrefix ? (
             <div
               className="flex items-center gap-1.5 px-3 h-full bg-[#FAF3E1]/70 dark:bg-[#1C1C1F] border-r border-[#E6D2A5] dark:border-[#2C2C2E] text-xs font-mono font-medium text-[#5C5C5C] dark:text-[#A1A1A6] select-none shrink-0 max-w-[200px] sm:max-w-[280px]"
               title={`Collection Base URL: ${baseUrl}`}

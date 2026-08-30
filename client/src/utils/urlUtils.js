@@ -111,8 +111,8 @@ export function combineBaseUrlAndPath(baseUrl, path) {
   if (!cleanBase) return cleanPath;
   if (!cleanPath) return cleanBase;
 
-  // If path is already an absolute URL (starts with http:// or https://), use it directly
-  if (/^https?:\/\//i.test(cleanPath)) {
+  // If path is already an absolute URL or begins with a template variable like {{baseUrl}}, use it directly
+  if (/^https?:\/\//i.test(cleanPath) || cleanPath.startsWith("{{")) {
     return cleanPath;
   }
 
@@ -132,6 +132,12 @@ export function combineBaseUrlAndPath(baseUrl, path) {
  */
 export function extractEndpointPath(url, baseUrl) {
   if (!url || typeof url !== "string") return "";
+
+  // If url begins with a template variable {{...}}, preserve it as-is
+  if (url.trim().startsWith("{{")) {
+    return url;
+  }
+
   const cleanBase = (baseUrl || "").trim().replace(/\/+$/, "");
 
   if (cleanBase && url.startsWith(cleanBase)) {
