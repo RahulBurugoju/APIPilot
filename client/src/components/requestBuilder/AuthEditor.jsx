@@ -77,35 +77,22 @@ function AuthEditor({ auth, onChange }) {
           </p>
         </div>
 
-        <div className="flex items-center gap-4 text-xs flex-wrap pt-1">
-          <span className="font-medium text-[#5C5C5C] dark:text-[#A1A1A6] select-none">
-            Type:
-          </span>
+        <div className="inline-flex items-center rounded-lg bg-[#FAF3E1] dark:bg-[#1C1C1F] p-0.5 border border-[#E6D2A5]/70 dark:border-[#2C2C2E] gap-0.5 flex-wrap">
           {AUTH_TYPES.map((at) => {
             const isSelected = currentAuth.type === at.value;
             return (
-              <label
+              <button
                 key={at.value}
-                className="inline-flex items-center gap-1.5 cursor-pointer select-none group"
+                type="button"
+                onClick={() => handleTypeChange(at.value)}
+                className={`px-3 py-1 text-xs font-medium rounded-md transition-all cursor-pointer select-none ${
+                  isSelected
+                    ? "bg-[#FFFFFF] dark:bg-[#2C2C2E] text-[#FF6D1F] shadow-xs font-semibold"
+                    : "text-[#5C5C5C] dark:text-[#A1A1A6] hover:text-[#222222] dark:hover:text-[#F5F5F7]"
+                }`}
               >
-                <input
-                  type="radio"
-                  name="authTypeRadio"
-                  value={at.value}
-                  checked={isSelected}
-                  onChange={() => handleTypeChange(at.value)}
-                  className="w-3.5 h-3.5 accent-[#FF6D1F] text-[#FF6D1F] focus:ring-[#FF6D1F] cursor-pointer"
-                />
-                <span
-                  className={`transition-colors ${
-                    isSelected
-                      ? "font-semibold text-[#FF6D1F]"
-                      : "text-[#5C5C5C] dark:text-[#A1A1A6] group-hover:text-[#222222] dark:group-hover:text-[#F5F5F7]"
-                  }`}
-                >
-                  {at.label}
-                </span>
-              </label>
+                {at.label}
+              </button>
             );
           })}
         </div>
