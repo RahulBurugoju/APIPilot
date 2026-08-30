@@ -118,14 +118,14 @@ export default function DashboardPage() {
         {/* Fixed Header Section: Welcome Banner & KPI Stats */}
         <div className="shrink-0 space-y-4">
           {/* Welcome Banner */}
-          <div className="p-5 rounded-xl bg-gradient-to-r from-[#FF6D1F]/10 via-[#FAF3E1] dark:via-[#141416] to-[#FAF3E1] dark:to-[#101012] border border-[#E6D2A5] dark:border-[#2C2C2E] flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
+          <div className="p-5 rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
             <div className="space-y-1">
               <div className="flex items-center gap-2 text-xs font-semibold text-[#FF6D1F]">
-                <Sparkles className="w-4 h-4" />
+                <Terminal className="w-3.5 h-3.5" />
                 <span>Developer Portal</span>
               </div>
-              <h1 className="text-xl font-bold tracking-tight text-[#222222] dark:text-[#F5F5F7]">
-                Welcome back, {user?.name || "Developer"} 👋
+              <h1 className="text-lg font-bold tracking-tight text-[#222222] dark:text-[#F5F5F7]">
+                Welcome back, {user?.name || "Developer"}
               </h1>
               <p className="text-xs text-[#5C5C5C] dark:text-[#A1A1A6] max-w-xl">
                 Build, execute, and monitor your API requests with dynamic variable resolution and real-time execution history.
@@ -136,7 +136,7 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={() => setIsCreateProjectModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#FF6D1F] hover:bg-[#E85B0F] text-white text-xs font-semibold transition-colors shadow-xs cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md bg-[#FF6D1F] hover:bg-[#E85B0F] text-white text-xs font-semibold transition-colors shadow-xs cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>New Project</span>
