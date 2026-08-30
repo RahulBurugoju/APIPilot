@@ -247,11 +247,26 @@ const executeRequest = async ({
             };
         }
 
-        // Target unreachable or DNS resolution failure
-        throw new ApiError(
-            502,
-            `Could not connect to target host: ${err.message || "Network Error"}`
-        );
+        // Target unreachable, connection refused, or DNS resolution failure (ECONNREFUSED, ENOTFOUND, etc.)
+        return {
+            status: 0,
+            statusText: err.code || "Network Error",
+            headers: {},
+            data: {
+                error: "Could not connect to target host",
+                message: err.message || "Connection refused or target host unreachable",
+                code: err.code || "ECONNREFUSED",
+            },
+            duration,
+            request: {
+                method: request.method,
+                url,
+                queryParams,
+                headers,
+                hasAuth: !!(authentication.axiosAuth || request.auth?.type !== "none"),
+            },
+            size: 0,
+        };
     }
 
     const duration = Date.now() - startTime;

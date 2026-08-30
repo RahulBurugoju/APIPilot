@@ -71,14 +71,17 @@ function ResponseViewer({
   const [activeTab, setActiveTab] = useState("body"); // "body" | "headers"
   const [copied, setCopied] = useState(false);
 
-  const formattedBody = response ? formatResponseBody(response.data) : "";
-  const headerEntries = response?.headers ? Object.entries(response.headers) : [];
+  // Normalize response in case it is nested under .result or .data
+  const res = response?.result || response?.data?.result || response;
+
+  const formattedBody = res ? formatResponseBody(res.data) : "";
+  const headerEntries = res?.headers ? Object.entries(res.headers) : [];
 
   const handleCopy = () => {
-    if (!response) return;
+    if (!res) return;
     const textToCopy =
       activeTab === "headers"
-        ? JSON.stringify(response.headers || {}, null, 2)
+        ? JSON.stringify(res.headers || {}, null, 2)
         : formattedBody;
 
     navigator.clipboard.writeText(textToCopy);
@@ -95,36 +98,36 @@ function ResponseViewer({
             Response
           </span>
 
-          {response ? (
+          {res ? (
             <>
               {/* Status Code & Text */}
               <div
                 className={`flex items-center gap-1 px-2 py-0.5 rounded border text-[10px] font-mono font-bold ${getStatusColorClass(
-                  response.status
+                  res.status
                 )}`}
               >
-                {response.status >= 200 && response.status < 300 ? (
+                {res.status >= 200 && res.status < 300 ? (
                   <CheckCircle2 className="w-3 h-3" />
                 ) : (
                   <AlertTriangle className="w-3 h-3" />
                 )}
                 <span>
-                  {response.status} {response.statusText || ""}
+                  {res.status !== undefined ? res.status : ""} {res.statusText || ""}
                 </span>
               </div>
 
               {/* Execution Duration */}
-              {response.duration !== undefined && (
+              {res.duration !== undefined && (
                 <div className="flex items-center gap-1 text-[11px] text-[#8C8C8C] dark:text-[#6E6E73] font-mono">
                   <Clock className="w-3 h-3 text-[#FF6D1F]" />
-                  <span>{response.duration} ms</span>
+                  <span>{res.duration} ms</span>
                 </div>
               )}
 
               {/* Response Size */}
-              {response.size !== undefined && (
+              {res.size !== undefined && (
                 <span className="text-[11px] text-[#8C8C8C] dark:text-[#6E6E73] font-mono">
-                  {formatBytes(response.size)}
+                  {formatBytes(res.size)}
                 </span>
               )}
             </>
@@ -133,7 +136,7 @@ function ResponseViewer({
 
         {/* 02.10.18 — Response Tabs & Copy Action */}
         <div className="flex items-center gap-2">
-          {response && (
+          {res && (
             <>
               <div className="flex items-center rounded bg-[#FAF3E1] dark:bg-[#1C1C1F] p-0.5 border border-[#E6D2A5] dark:border-[#2C2C2E]">
                 <button
@@ -198,7 +201,7 @@ function ResponseViewer({
               </p>
             )}
           </div>
-        ) : error && !response ? (
+        ) : error && !res ? (
           /* Error State */
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
             <AlertCircle className="w-8 h-8 text-[#DC2626] dark:text-[#F87171] mb-2" />
@@ -209,7 +212,7 @@ function ResponseViewer({
               {error}
             </p>
           </div>
-        ) : response ? (
+        ) : res ? (
           activeTab === "headers" ? (
             /* 02.10.20 — Response Headers Table */
             <div className="p-3">

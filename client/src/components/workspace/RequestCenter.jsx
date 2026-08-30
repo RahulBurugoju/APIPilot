@@ -18,6 +18,7 @@ import {
   setCurrentRequestUrl,
   setCurrentRequestQueryParams,
   setCurrentRequestAuth,
+  clearExecutionResponse,
 } from "../../features/request/requestSlice.js";
 import requestThunk from "../../features/request/request.Thunk.js";
 import RequestHeader from "../requestBuilder/RequestHeader.jsx";
@@ -145,12 +146,13 @@ function RequestCenter({ project, request, onNewRequest }) {
 
   const handleSave = useCallback(async () => {
     if (!selected?._id || !selected?.collection) return;
+    const colId = selected.collection?._id || selected.collection;
     try {
       setIsSaving(true);
       await dispatch(
         requestThunk.updateRequest({
           projectId: project?._id,
-          collectionId: selected.collection,
+          collectionId: colId,
           requestId: selected._id,
           requestDetails: {
             method,
@@ -195,16 +197,19 @@ function RequestCenter({ project, request, onNewRequest }) {
       await handleSave();
     }
 
+    const colId = selected.collection?._id || selected.collection;
+
     dispatch(
       requestThunk.executeRequest({
         projectId: project?._id,
-        collectionId: selected.collection,
+        collectionId: colId,
         requestId: selected._id,
       })
     );
   };
 
   const handleCloseTab = () => {
+    dispatch(clearExecutionResponse());
     dispatch(clearCurrentRequest());
   };
 

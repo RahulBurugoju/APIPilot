@@ -20,6 +20,13 @@ const requestSlice = createSlice({
         clearRequestError: (state) => {
             state.error = null;
         },
+        clearExecutionResponse: (state) => {
+            state.execution = {
+                loading: false,
+                error: null,
+                response: null,
+            };
+        },
         setCurrentRequest: (state, action) => {
             if (!action.payload) {
                 state.currentRequest = null;
@@ -286,15 +293,22 @@ const requestSlice = createSlice({
             .addCase(requestThunk.executeRequest.pending, (state) => {
                 state.execution.loading = true;
                 state.execution.error = null;
+                state.execution.response = null;
             })
             .addCase(requestThunk.executeRequest.fulfilled, (state, action) => {
                 state.execution.loading = false;
                 state.execution.error = null;
-                state.execution.response = action.payload?.data || action.payload;
+                // Properly unwrap response result whether wrapped under data.result, result, data, or direct
+                state.execution.response =
+                    action.payload?.data?.result ||
+                    action.payload?.result ||
+                    action.payload?.data ||
+                    action.payload;
             })
             .addCase(requestThunk.executeRequest.rejected, (state, action) => {
                 state.execution.loading = false;
                 state.execution.error = action.payload;
+                state.execution.response = null;
             });
     },
 });

@@ -1,8 +1,17 @@
 import api from "../lib/axios.js";
 
+const extractId = (val) => {
+  if (!val) return "";
+  if (typeof val === "string") return val;
+  if (typeof val === "object") return val._id || val.id || "";
+  return String(val);
+};
+
 const createRequest = async ({ projectId, collectionId, requestDetails }) => {
+  const pId = extractId(projectId);
+  const cId = extractId(collectionId);
   const response = await api.post(
-    `/projects/${projectId}/collections/${collectionId}/requests`,
+    `/projects/${pId}/collections/${cId}/requests`,
     {
       ...requestDetails,
     }
@@ -11,15 +20,20 @@ const createRequest = async ({ projectId, collectionId, requestDetails }) => {
 };
 
 const getCollectionRequests = async ({ projectId, collectionId }) => {
+  const pId = extractId(projectId);
+  const cId = extractId(collectionId);
   const response = await api.get(
-    `/projects/${projectId}/collections/${collectionId}/requests`
+    `/projects/${pId}/collections/${cId}/requests`
   );
   return response.data;
 };
 
 const getRequest = async ({ projectId, collectionId, requestId }) => {
+  const pId = extractId(projectId);
+  const cId = extractId(collectionId);
+  const rId = extractId(requestId);
   const response = await api.get(
-    `/projects/${projectId}/collections/${collectionId}/requests/${requestId}`
+    `/projects/${pId}/collections/${cId}/requests/${rId}`
   );
   return response.data;
 };
@@ -30,8 +44,11 @@ const updateRequest = async ({
   requestId,
   requestDetails,
 }) => {
+  const pId = extractId(projectId);
+  const cId = extractId(collectionId);
+  const rId = extractId(requestId);
   const response = await api.patch(
-    `/projects/${projectId}/collections/${collectionId}/requests/${requestId}`,
+    `/projects/${pId}/collections/${cId}/requests/${rId}`,
     {
       ...requestDetails,
     }
@@ -45,8 +62,11 @@ const updateRequestAuth = async ({
   requestId,
   auth,
 }) => {
+  const pId = extractId(projectId);
+  const cId = extractId(collectionId);
+  const rId = extractId(requestId);
   const response = await api.patch(
-    `/projects/${projectId}/collections/${collectionId}/requests/${requestId}`,
+    `/projects/${pId}/collections/${cId}/requests/${rId}`,
     {
       auth,
     }
@@ -55,16 +75,19 @@ const updateRequestAuth = async ({
 };
 
 const deleteRequest = async ({ projectId, collectionId, requestId }) => {
+  const pId = extractId(projectId);
+  const cId = extractId(collectionId);
+  const rId = extractId(requestId);
   const response = await api.delete(
-    `/projects/${projectId}/collections/${collectionId}/requests/${requestId}`
+    `/projects/${pId}/collections/${cId}/requests/${rId}`
   );
   return response.data;
 };
 
 const executeRequest = async (projectId, collectionId, requestId) => {
-  const pId = projectId?.projectId || projectId;
-  const cId = projectId?.collectionId || collectionId;
-  const rId = projectId?.requestId || requestId;
+  const pId = extractId(projectId?.projectId || projectId);
+  const cId = extractId(projectId?.collectionId || collectionId);
+  const rId = extractId(projectId?.requestId || requestId);
 
   const response = await api.post(
     `/projects/${pId}/collections/${cId}/requests/${rId}/execute`
