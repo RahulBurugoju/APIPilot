@@ -324,8 +324,26 @@ const executeRequest = async ({
                 duration,
                 size: 0,
             };
+        } else if (
+            err.code === "ENOTFOUND" ||
+            err.message?.toLowerCase().includes("enotfound") ||
+            err.message?.toLowerCase().includes("getaddrinfo")
+        ) {
+            // DNS resolution failure (e.g. invalid-domain.test)
+            normalizedResponse = {
+                status: 0,
+                statusText: "DNS lookup failed",
+                headers: {},
+                data: {
+                    error: "DNS lookup failed",
+                    message: "DNS lookup failed for target host",
+                    code: "ENOTFOUND",
+                },
+                duration,
+                size: 0,
+            };
         } else {
-            // Target unreachable, connection refused, or DNS resolution failure
+            // Target unreachable, connection refused, or other network errors
             normalizedResponse = {
                 status: 0,
                 statusText: err.code || "Network Error",
@@ -394,10 +412,9 @@ const executeRequest = async ({
             normalizedResponse.status < 400;
 
         const executionError =
-            !isSuccess &&
-            (normalizedResponse.status === 0 ||
-                normalizedResponse.status >= 400)
-                ? normalizedResponse.data?.message ||
+            !isSuccess
+                ? normalizedResponse.data?.error ||
+                  normalizedResponse.data?.message ||
                   normalizedResponse.statusText ||
                   "Execution Error"
                 : null;

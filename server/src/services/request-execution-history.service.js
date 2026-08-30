@@ -57,7 +57,8 @@ const getRequestHistory = async ({
     requestId,
     projectId,
     userId,
-    limit = 50,
+    page = 1,
+    limit = 20,
 }) => {
     const query = {};
 
@@ -73,13 +74,29 @@ const getRequestHistory = async ({
         query.user = userId;
     }
 
-    const history = await RequestExecution.find(query)
+    const pageNum = Math.max(1, Number(page) || 1);
+    const limitNum = Math.min(100, Math.max(1, Number(limit) || 20));
+    const skip = (pageNum - 1) * limitNum;
+
+    const executions = await RequestExecution.find(query)
         .sort({ createdAt: -1 })
-        .limit(Number(limit))
+        .skip(skip)
+        .limit(limitNum)
         .populate("environment", "name isActive")
         .populate("request", "name method url");
 
-    return history || [];
+    const total = await RequestExecution.countDocuments(query);
+    const totalPages = Math.ceil(total / limitNum);
+
+    return {
+        executions: executions || [],
+        pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total,
+            totalPages,
+        },
+    };
 };
 
 
