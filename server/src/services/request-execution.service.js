@@ -537,10 +537,172 @@ const executeRequest = async ({
     };
 };
 
-export {
-    executeRequest
+const executeDirectRequest = async ({
+    method = "GET",
+    url,
+    headers: rawHeadersList = [],
+    queryParams: rawQueryParamsList = [],
+    body: rawBody = {},
+    auth: rawAuth = null,
+    timeout = 15000,
+}) => {
+    if (!url || typeof url !== "string" || !url.trim()) {
+        throw new ApiError(400, "A valid request URL is required for execution");
+    }
+
+    let normalizedUrl = url.trim();
+    if (
+        !normalizedUrl.startsWith("http://") &&
+        !normalizedUrl.startsWith("https://")
+    ) {
+        normalizedUrl = `https://${normalizedUrl}`;
+    }
+
+    const queryParams = buildQueryParams(rawQueryParamsList);
+    const headers = buildHeaders(rawHeadersList);
+
+    const authentication = applyAuthentication({
+        auth: rawAuth,
+        headers,
+        queryParams,
+    });
+
+    const body = buildRequestBody({
+        body: rawBody,
+        method: method.toUpperCase(),
+        variables: [],
+    });
+
+    const config = {
+        method: method.toUpperCase(),
+        url: normalizedUrl,
+        params: authentication.queryParams,
+        headers: authentication.headers,
+        data: body,
+        timeout: Math.min(Number(timeout) || 15000, 20000),
+        validateStatus: () => true,
+    };
+
+    if (authentication.axiosAuth) {
+        config.auth = authentication.axiosAuth;
+    }
+
+    config.transformResponse = [(rawData) => rawData];
+
+    const startTime = Date.now();
+    let response;
+
+    const extractContentType = (resHeaders) => {
+        if (!resHeaders) return "text/plain";
+        const key = Object.keys(resHeaders).find(
+            (k) => k.toLowerCase() === "content-type"
+        );
+        if (key && resHeaders[key]) {
+            return String(resHeaders[key]).split(";")[0].trim();
+        }
+        return "text/plain";
+    };
+
+    const calculateResponseSize = (resHeaders, resData) => {
+        const headerVal = resHeaders
+            ? resHeaders["content-length"] || resHeaders["Content-Length"]
+            : null;
+        const parsedHeader = Number(headerVal);
+
+        if (
+            headerVal !== undefined &&
+            headerVal !== null &&
+            !isNaN(parsedHeader) &&
+            parsedHeader > 0
+        ) {
+            return parsedHeader;
+        }
+
+        if (resData === undefined || resData === null) {
+            return 0;
+        }
+
+        if (Buffer.isBuffer(resData)) {
+            return resData.length;
+        }
+
+        if (typeof resData === "string") {
+            return Buffer.byteLength(resData, "utf8");
+        }
+
+        try {
+            return Buffer.byteLength(JSON.stringify(resData), "utf8");
+        } catch {
+            return 0;
+        }
+    };
+
+    let normalizedResponse;
+
+    try {
+        response = await axios(config);
+        const duration = Date.now() - startTime;
+        const rawPayload = response.data;
+        let parsedData = rawPayload;
+
+        if (typeof rawPayload === "string") {
+            const trimmed = rawPayload.trim();
+            if (
+                (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+                (trimmed.startsWith("[") && trimmed.endsWith("]"))
+            ) {
+                try {
+                    parsedData = JSON.parse(rawPayload);
+                } catch {
+                    parsedData = rawPayload;
+                }
+            }
+        }
+
+        normalizedResponse = {
+            status: response.status,
+            statusText: response.statusText,
+            headers: response.headers || {},
+            data: parsedData,
+            duration,
+            size: calculateResponseSize(response.headers, rawPayload),
+            contentType: extractContentType(response.headers),
+        };
+    } catch (axiosError) {
+        const duration = Date.now() - startTime;
+        const errorMessage = axiosError.code === "ECONNABORTED"
+            ? "Request timed out after " + config.timeout + "ms"
+            : axiosError.message || "Network execution failed";
+
+        normalizedResponse = {
+            status: 0,
+            statusText: axiosError.code || "NETWORK_ERROR",
+            headers: {},
+            data: { error: errorMessage, code: axiosError.code || "UNKNOWN" },
+            duration,
+            size: 0,
+            contentType: "application/json",
+        };
+    }
+
+    return {
+        status: normalizedResponse.status,
+        statusText: normalizedResponse.statusText,
+        headers: normalizedResponse.headers,
+        data: normalizedResponse.data,
+        duration: normalizedResponse.duration,
+        size: normalizedResponse.size,
+        contentType: normalizedResponse.contentType,
+        request: {
+            method: method.toUpperCase(),
+            url: normalizedUrl,
+            queryParams: authentication.queryParams,
+            headers: authentication.headers,
+        },
+    };
 };
 
-// export default {
-//     executeRequest
-// };
+export {
+    executeRequest,
+    executeDirectRequest,
+};

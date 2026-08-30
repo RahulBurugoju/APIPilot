@@ -7,12 +7,21 @@ import LoginPage from "../pages/LoginPage.jsx";
 import RegisterPage from "../pages/RegisterPage.jsx";
 import DashboardPage from "../pages/dashboard/DashboardPage.jsx";
 import ProjectWorkspacePage from "../pages/project/ProjectWorkspacePage.jsx";
+import PlaygroundPage from "../pages/PlaygroundPage.jsx";
 
 function AppRouter() {
   const router = createBrowserRouter([
     {
       path: "/",
       element: <LandingPage />,
+    },
+    {
+      path: "/playground",
+      element: <PlaygroundPage />,
+    },
+    {
+      path: "/explore",
+      element: <PlaygroundPage />,
     },
     {
       element: <PublicOnlyRoute />,

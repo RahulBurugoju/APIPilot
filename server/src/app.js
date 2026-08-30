@@ -3,6 +3,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import apiRouter from "./routes/index.js";
 import projectRouter from "./routes/project.routes.js";
+import guestRouter from "./routes/guest.routes.js";
 import errorHandler from "./middlewares/error.middleware.js";
 
 const app = express();
@@ -44,6 +45,7 @@ app.get("/health", (req, res) => {
   });
 });
 
+app.use("/api/v1/guest", guestRouter);
 app.use("/api/v1", apiRouter);
 app.use("/api/v1/projects", projectRouter);
 

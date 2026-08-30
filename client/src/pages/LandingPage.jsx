@@ -32,6 +32,9 @@ const LandingPage = () => {
           </div>
 
           <nav className="hidden md:flex items-center gap-6 text-xs text-[#5C5C5C] dark:text-[#A1A1A6]">
+            <Link to="/playground" className="text-[#FF6D1F] font-semibold hover:underline flex items-center gap-1">
+              <span>⚡ Live Playground</span>
+            </Link>
             <a href="#overview" className="hover:text-[#222222] dark:hover:text-[#F5F5F7] transition-colors">
               Overview
             </a>
@@ -48,6 +51,12 @@ const LandingPage = () => {
 
           <div className="flex items-center gap-3">
             <ThemeToggle />
+            <Link
+              to="/playground"
+              className="text-xs text-[#5C5C5C] dark:text-[#A1A1A6] hover:text-[#222222] dark:hover:text-[#F5F5F7] px-2 py-1.5 transition-colors font-medium hidden sm:inline-block"
+            >
+              Explore Sandbox
+            </Link>
             <Link
               to="/login"
               className="text-xs text-[#5C5C5C] dark:text-[#A1A1A6] hover:text-[#222222] dark:hover:text-[#F5F5F7] px-3 py-1.5 transition-colors font-medium"
@@ -83,17 +92,23 @@ const LandingPage = () => {
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Link
-              to="/register"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-md bg-[#FF6D1F] text-white hover:bg-[#E85B0F] dark:bg-[#F5F5F7] dark:text-[#0B0B0D] dark:hover:bg-white text-xs font-medium transition-colors shadow-sm"
+              to="/playground"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-md bg-[#FF6D1F] text-white hover:bg-[#E85B0F] text-xs font-semibold transition-colors shadow-sm"
             >
-              Start Free Workspace
+              <span>⚡ Try Live Playground</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
             <Link
-              to="/login"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-md bg-[#FFFFFF] dark:bg-[#141416] text-[#222222] dark:text-[#A1A1A6] hover:text-[#FF6D1F] dark:hover:text-[#F5F5F7] border border-[#E6D2A5] dark:border-[#2C2C2E] text-xs font-medium hover:bg-[#F5E7C6] dark:hover:bg-[#1C1C1F] transition-colors shadow-xs"
+              to="/register"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-md bg-[#FFFFFF] dark:bg-[#141416] text-[#222222] dark:text-[#F5F5F7] hover:text-[#FF6D1F] border border-[#E6D2A5] dark:border-[#2C2C2E] text-xs font-medium hover:bg-[#F5E7C6] dark:hover:bg-[#1C1C1F] transition-colors shadow-xs"
             >
-              Sign in to Account
+              Start Free Workspace
+            </Link>
+            <Link
+              to="/login"
+              className="inline-flex items-center gap-2 px-3.5 py-2.5 text-[#5C5C5C] dark:text-[#A1A1A6] hover:text-[#222222] dark:hover:text-[#F5F5F7] text-xs font-medium transition-colors"
+            >
+              Sign In
             </Link>
           </div>
 
