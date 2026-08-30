@@ -114,7 +114,7 @@ export default function DashboardPage() {
       {/* ---------------------------------------------------- */}
       {/* MAIN CONTENT AREA                                    */}
       {/* ---------------------------------------------------- */}
-      <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 flex-1 flex flex-col overflow-hidden space-y-5">
+      <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 flex-1 flex flex-col overflow-hidden space-y-4">
         {/* Fixed Header Section: Welcome Banner & KPI Stats */}
         <div className="shrink-0 space-y-4">
           {/* Welcome Banner */}
