@@ -262,28 +262,54 @@ const executeRequest = async ({
         config.auth = authentication.axiosAuth;
     }
 
+    config.transformResponse = [(rawData) => rawData];
+
     const startTime = Date.now();
     let response;
 
-    const getResponseSize = (
-        resHeaders,
-        resData
-    ) => {
-        const contentLength = resHeaders?.["content-length"];
+    const extractContentType = (resHeaders) => {
+        if (!resHeaders) return "text/plain";
+        const key = Object.keys(resHeaders).find(
+            (k) => k.toLowerCase() === "content-type"
+        );
+        if (key && resHeaders[key]) {
+            return String(resHeaders[key]).split(";")[0].trim();
+        }
+        return "text/plain";
+    };
 
-        if (contentLength) {
-            return Number(contentLength);
+    const calculateResponseSize = (resHeaders, resData) => {
+        const headerVal = resHeaders
+            ? resHeaders["content-length"] || resHeaders["Content-Length"]
+            : null;
+        const parsedHeader = Number(headerVal);
+
+        if (
+            headerVal !== undefined &&
+            headerVal !== null &&
+            !isNaN(parsedHeader) &&
+            parsedHeader > 0
+        ) {
+            return parsedHeader;
         }
 
-        if (!resData) {
+        if (resData === undefined || resData === null) {
             return 0;
         }
 
-        return Buffer.byteLength(
-            typeof resData === "string"
-                ? resData
-                : JSON.stringify(resData)
-        );
+        if (Buffer.isBuffer(resData)) {
+            return resData.length;
+        }
+
+        if (typeof resData === "string") {
+            return Buffer.byteLength(resData, "utf8");
+        }
+
+        try {
+            return Buffer.byteLength(JSON.stringify(resData), "utf8");
+        } catch {
+            return 0;
+        }
     };
 
     let normalizedResponse;
@@ -291,18 +317,35 @@ const executeRequest = async ({
     try {
         response = await axios(config);
         const duration = Date.now() - startTime;
-        const size = getResponseSize(
-            response.headers,
-            response.data
-        );
+        const rawPayload = response.data;
+        let parsedData = rawPayload;
+
+        if (typeof rawPayload === "string") {
+            const trimmed = rawPayload.trim();
+            if (
+                (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+                (trimmed.startsWith("[") && trimmed.endsWith("]"))
+            ) {
+                try {
+                    parsedData = JSON.parse(rawPayload);
+                } catch {
+                    parsedData = rawPayload;
+                }
+            }
+        }
+
+        const contentType = extractContentType(response.headers);
+        const size = calculateResponseSize(response.headers, rawPayload);
 
         normalizedResponse = {
             status: response.status,
             statusText: response.statusText || "OK",
             headers: response.headers || {},
-            data: response.data !== undefined ? response.data : null,
+            data: parsedData !== undefined ? parsedData : null,
             duration,
             size,
+            contentType,
+            requestId,
         };
     } catch (err) {
         const duration = Date.now() - startTime;
@@ -323,6 +366,8 @@ const executeRequest = async ({
                 },
                 duration,
                 size: 0,
+                contentType: "application/json",
+                requestId,
             };
         } else if (
             err.code === "ENOTFOUND" ||
@@ -341,6 +386,8 @@ const executeRequest = async ({
                 },
                 duration,
                 size: 0,
+                contentType: "application/json",
+                requestId,
             };
         } else {
             // Target unreachable, connection refused, or other network errors
@@ -357,6 +404,8 @@ const executeRequest = async ({
                 },
                 duration,
                 size: 0,
+                contentType: "application/json",
+                requestId,
             };
         }
     }

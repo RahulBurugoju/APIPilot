@@ -171,6 +171,11 @@ const responseSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
+
+        contentType: {
+            type: String,
+            default: "text/plain",
+        },
     },
     {
         _id: false,
