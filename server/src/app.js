@@ -1,23 +1,52 @@
-import express from "express"
-import cors from "cors"
-import cookieParser from "cookie-parser"
-import apiRouter from './routes/index.js'
-import projectRouter from './routes/project.routes.js'
-import errorHandler from './middlewares/error.middleware.js'
- const app = express()
+import express from "express";
+import cors from "cors";
+import cookieParser from "cookie-parser";
+import apiRouter from "./routes/index.js";
+import projectRouter from "./routes/project.routes.js";
+import errorHandler from "./middlewares/error.middleware.js";
 
-app.use(cors({
-    origin:process.env.CORS_ORIGIN || "http://localhost:5173",
-    credentials:true
-}))
+const app = express();
 
-app.use(express.json())
-app.use(express.urlencoded({extended:true}))
-app.use(cookieParser())
+// Parse CORS allowed origins from environment variable or default to localhost and Vercel domains
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",").map((o) => o.trim())
+  : ["http://localhost:5173", "http://localhost:3000"];
 
-app.use('/api/v1',apiRouter)
-app.use('/api/v1/projects',projectRouter)
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps, curl, Postman, or server-to-server)
+      if (!origin) return callback(null, true);
 
-app.use(errorHandler)
+      if (
+        allowedOrigins.includes(origin) ||
+        allowedOrigins.includes("*") ||
+        origin.endsWith(".vercel.app")
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true); // Permissive CORS for deployed client/server interaction
+    },
+    credentials: true,
+  })
+);
 
-export default app
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+// Health check endpoint for Render deployment monitoring
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    message: "APIPilot server is running cleanly",
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.use("/api/v1", apiRouter);
+app.use("/api/v1/projects", projectRouter);
+
+app.use(errorHandler);
+
+export default app;

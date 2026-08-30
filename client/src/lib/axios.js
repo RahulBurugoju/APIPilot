@@ -1,12 +1,12 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:9000/api/v1",
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 10000,
+  timeout: 15000,
 });
 
 let accessToken = null;
@@ -41,20 +41,18 @@ const refreshAccessToken = async () => {
   return refreshPromise;
 };
 
-// request interpectors
-
+// Request Interceptor
 api.interceptors.request.use(
   (config) => {
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
-
     return config;
   },
   (error) => Promise.reject(error),
 );
 
-// response Interpector
+// Response Interceptor
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -63,7 +61,7 @@ api.interceptors.response.use(
     if (error.response?.status !== 401 || originalRequest?._retry) {
       return Promise.reject(error);
     }
-    // Loop Prevention on /auth/refresh-token
+    // Loop Prevention on /auth/refresh-token & /auth/login
     if (
       originalRequest.url?.includes("/auth/refresh-token") ||
       originalRequest?.url?.includes("/auth/login")
@@ -76,9 +74,7 @@ api.interceptors.response.use(
 
     try {
       const newToken = await refreshAccessToken();
-
       originalRequest.headers.Authorization = `Bearer ${newToken}`;
-
       return api(originalRequest);
     } catch (refreshError) {
       clearAccessToken();
@@ -86,4 +82,5 @@ api.interceptors.response.use(
     }
   },
 );
+
 export default api;
