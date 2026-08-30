@@ -1,7 +1,21 @@
 import axios from "axios";
 
+// Helper to normalize the API baseURL to always include the /api/v1 prefix
+const getBaseURL = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (!envUrl) {
+    return "http://localhost:9000/api/v1";
+  }
+
+  const cleanUrl = envUrl.trim().replace(/\/+$/, "");
+  if (cleanUrl.endsWith("/api/v1")) {
+    return cleanUrl;
+  }
+  return `${cleanUrl}/api/v1`;
+};
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:9000/api/v1",
+  baseURL: getBaseURL(),
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
