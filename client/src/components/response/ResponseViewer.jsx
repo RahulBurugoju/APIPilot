@@ -2,11 +2,7 @@ import { useState, useMemo } from "react";
 import {
   Check,
   Copy,
-  Clock,
-  CheckCircle2,
-  AlertTriangle,
   AlertCircle,
-  Loader2,
   Send,
   Trash2,
   Search,
@@ -14,57 +10,25 @@ import {
   ServerOff,
 } from "lucide-react";
 
-/**
- * Format bytes into human readable format (B, KB, MB)
- */
-function formatBytes(bytes) {
-  if (!bytes || bytes === 0) return "0 B";
-  const k = 1024;
-  const sizes = ["B", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-}
+import ResponseHeader from "./ResponseHeader";
+import ResponseTabs from "./ResponseTabs";
+import ResponseBody from "./ResponseBody";
+import ResponseHeaders from "./ResponseHeaders";
+import ResponseCookies from "./ResponseCookies";
+import ResponseInfo from "./ResponseInfo";
+import { formatResponseBody } from "./responseUtils";
 
 /**
- * Get color classes for HTTP status code badges
+ * Count cookies from response headers.
  */
-function getStatusColorClass(status) {
-  if (!status || status === 0) {
-    return "text-[#DC2626] dark:text-[#F87171] bg-[#FEF2F2] dark:bg-[#200B0D] border-[#FECACA] dark:border-[#7F1D1D]";
-  }
-  if (status >= 200 && status < 300) {
-    return "text-[#059669] dark:text-[#00E599] bg-[#ECFDF5] dark:bg-[#062417] border-[#A7F3D0] dark:border-[#104D30]";
-  }
-  if (status >= 300 && status < 400) {
-    return "text-[#2563EB] dark:text-[#60A5FA] bg-[#EFF6FF] dark:bg-[#0A1B36] border-[#BFDBFE] dark:border-[#1E3A8A]";
-  }
-  if (status >= 400 && status < 500) {
-    return "text-[#D97706] dark:text-[#FBBF24] bg-[#FFFBEB] dark:bg-[#201806] border-[#FDE68A] dark:border-[#78350F]";
-  }
-  return "text-[#DC2626] dark:text-[#F87171] bg-[#FEF2F2] dark:bg-[#200B0D] border-[#FECACA] dark:border-[#7F1D1D]";
-}
-
-/**
- * Formats response body data into displayable string
- */
-function formatResponseBody(data, isPretty = true) {
-  if (data === undefined || data === null) return "";
-  if (typeof data === "object") {
-    try {
-      return JSON.stringify(data, null, isPretty ? 2 : 0);
-    } catch {
-      return String(data);
-    }
-  }
-  if (typeof data === "string") {
-    try {
-      const parsed = JSON.parse(data);
-      return JSON.stringify(parsed, null, isPretty ? 2 : 0);
-    } catch {
-      return data;
-    }
-  }
-  return String(data);
+function countCookies(headers = {}) {
+  const key = Object.keys(headers).find(
+    (k) => k.toLowerCase() === "set-cookie"
+  );
+  if (!key) return 0;
+  const val = headers[key];
+  if (Array.isArray(val)) return val.length;
+  return String(val).split(/,(?=\s*\w+=)/).length;
 }
 
 function ResponseViewer({
@@ -74,8 +38,7 @@ function ResponseViewer({
   endpoint = "",
   onClearResponse,
 }) {
-  const [activeTab, setActiveTab] = useState("body"); // "body" | "headers"
-  const [viewMode, setViewMode] = useState("pretty"); // "pretty" | "raw"
+  const [activeTab, setActiveTab] = useState("body"); // "body" | "headers" | "cookies" | "info"
   const [copied, setCopied] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -83,35 +46,15 @@ function ResponseViewer({
   // Normalize response in case it is nested under .result or .data
   const res = response?.result || response?.data?.result || response;
 
-  const isPretty = viewMode === "pretty";
-  const formattedBody = res ? formatResponseBody(res.data, isPretty) : "";
   const headerEntries = res?.headers ? Object.entries(res.headers) : [];
-
-  // Filtered headers based on search query
-  const filteredHeaders = useMemo(() => {
-    if (!searchQuery.trim()) return headerEntries;
-    const q = searchQuery.toLowerCase();
-    return headerEntries.filter(
-      ([k, v]) => k.toLowerCase().includes(q) || String(v).toLowerCase().includes(q)
-    );
-  }, [headerEntries, searchQuery]);
-
-  // Filtered body lines based on search query
-  const filteredBody = useMemo(() => {
-    if (!searchQuery.trim() || !formattedBody) return formattedBody;
-    const lines = formattedBody.split("\n");
-    const matched = lines.filter((l) =>
-      l.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    return matched.length > 0 ? matched.join("\n") : "(No matching lines found)";
-  }, [formattedBody, searchQuery]);
+  const cookieCount = res?.headers ? countCookies(res.headers) : 0;
 
   const handleCopy = () => {
     if (!res) return;
     const textToCopy =
       activeTab === "headers"
         ? JSON.stringify(res.headers || {}, null, 2)
-        : formattedBody;
+        : formatResponseBody(res.data, true);
 
     navigator.clipboard.writeText(textToCopy);
     setCopied(true);
@@ -124,62 +67,7 @@ function ResponseViewer({
     <div className="rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] shadow-xs flex flex-col flex-1 min-h-[200px] overflow-hidden">
       {/* Response Header Bar */}
       <div className="flex items-center justify-between px-3.5 py-2 border-b border-[#FAF3E1] dark:border-[#1F1F23] bg-[#FAF3E1]/40 dark:bg-[#18181B]/60 shrink-0 flex-wrap gap-2">
-        <div className="flex items-center gap-2.5">
-          <span className="text-xs font-semibold text-[#222222] dark:text-[#F5F5F7]">
-            Response
-          </span>
-
-          {loading && (
-            <span className="flex items-center gap-1.5 text-[11px] font-mono text-[#FF6D1F] animate-pulse">
-              <Loader2 className="w-3 h-3 animate-spin" />
-              <span>Executing...</span>
-            </span>
-          )}
-
-          {res && !loading ? (
-            <>
-              {/* Status Code & Text Badge */}
-              <div
-                className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[11px] font-mono font-bold ${getStatusColorClass(
-                  res.status
-                )}`}
-              >
-                {res.status >= 200 && res.status < 300 ? (
-                  <CheckCircle2 className="w-3 h-3" />
-                ) : res.status === 0 ? (
-                  <ServerOff className="w-3 h-3" />
-                ) : (
-                  <AlertTriangle className="w-3 h-3" />
-                )}
-                <span>
-                  {res.status !== undefined ? res.status : ""}{" "}
-                  {res.status === 0 ? "Connection Refused" : res.statusText || ""}
-                </span>
-              </div>
-
-              {/* Execution Duration */}
-              {res.duration !== undefined && (
-                <div
-                  className="flex items-center gap-1 text-[11px] text-[#8C8C8C] dark:text-[#6E6E73] font-mono"
-                  title="Execution Duration"
-                >
-                  <Clock className="w-3 h-3 text-[#FF6D1F]" />
-                  <span>{res.duration} ms</span>
-                </div>
-              )}
-
-              {/* Response Size */}
-              {res.size !== undefined && res.size > 0 && (
-                <span
-                  className="text-[11px] text-[#8C8C8C] dark:text-[#6E6E73] font-mono"
-                  title="Response Size"
-                >
-                  {formatBytes(res.size)}
-                </span>
-              )}
-            </>
-          ) : null}
-        </div>
+        <ResponseHeader response={res} loading={loading} />
 
         {/* Action Controls */}
         <div className="flex items-center gap-1.5">
@@ -202,59 +90,13 @@ function ResponseViewer({
                 <Search className="w-3.5 h-3.5" />
               </button>
 
-              {/* Tabs: Body / Headers */}
-              <div className="flex items-center rounded-lg bg-[#FAF3E1] dark:bg-[#1C1C1F] p-0.5 border border-[#E6D2A5]/70 dark:border-[#2C2C2E]">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("body")}
-                  className={`px-2.5 py-0.5 text-[11px] font-medium rounded transition-colors cursor-pointer ${
-                    activeTab === "body"
-                      ? "bg-white dark:bg-[#2C2C2E] text-[#FF6D1F] shadow-xs font-semibold"
-                      : "text-[#5C5C5C] dark:text-[#A1A1A6] hover:text-[#222222] dark:hover:text-[#F5F5F7]"
-                  }`}
-                >
-                  Body
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("headers")}
-                  className={`px-2.5 py-0.5 text-[11px] font-medium rounded transition-colors cursor-pointer ${
-                    activeTab === "headers"
-                      ? "bg-white dark:bg-[#2C2C2E] text-[#FF6D1F] shadow-xs font-semibold"
-                      : "text-[#5C5C5C] dark:text-[#A1A1A6] hover:text-[#222222] dark:hover:text-[#F5F5F7]"
-                  }`}
-                >
-                  Headers ({headerEntries.length})
-                </button>
-              </div>
-
-              {/* Pretty / Raw Toggle (when on Body tab) */}
-              {activeTab === "body" && (
-                <div className="flex items-center rounded-lg bg-[#FAF3E1] dark:bg-[#1C1C1F] p-0.5 border border-[#E6D2A5]/70 dark:border-[#2C2C2E]">
-                  <button
-                    type="button"
-                    onClick={() => setViewMode("pretty")}
-                    className={`px-2 py-0.5 text-[10px] font-mono font-medium rounded transition-colors cursor-pointer ${
-                      viewMode === "pretty"
-                        ? "bg-white dark:bg-[#2C2C2E] text-[#FF6D1F] shadow-xs"
-                        : "text-[#8C8C8C] hover:text-[#222222] dark:hover:text-[#F5F5F7]"
-                    }`}
-                  >
-                    Pretty
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setViewMode("raw")}
-                    className={`px-2 py-0.5 text-[10px] font-mono font-medium rounded transition-colors cursor-pointer ${
-                      viewMode === "raw"
-                        ? "bg-white dark:bg-[#2C2C2E] text-[#FF6D1F] shadow-xs"
-                        : "text-[#8C8C8C] hover:text-[#222222] dark:hover:text-[#F5F5F7]"
-                    }`}
-                  >
-                    Raw
-                  </button>
-                </div>
-              )}
+              {/* Tabs: Body / Headers / Cookies / Info */}
+              <ResponseTabs
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+                headerCount={headerEntries.length}
+                cookieCount={cookieCount}
+              />
 
               {/* Copy Button */}
               <button
@@ -379,49 +221,19 @@ function ResponseViewer({
               </div>
             </div>
           ) : activeTab === "headers" ? (
-            /* Response Headers Table */
-            <div className="p-3">
-              {filteredHeaders.length === 0 ? (
-                <p className="text-xs font-mono text-[#8C8C8C] dark:text-[#6E6E73] p-4 text-center">
-                  {searchQuery
-                    ? "No matching headers found."
-                    : "No response headers received."}
-                </p>
-              ) : (
-                <table className="w-full text-xs font-mono text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-[#E6D2A5] dark:border-[#2C2C2E] text-[#8C8C8C] dark:text-[#6E6E73]">
-                      <th className="py-2 px-3 font-semibold uppercase text-[10px] tracking-wider">
-                        Key
-                      </th>
-                      <th className="py-2 px-3 font-semibold uppercase text-[10px] tracking-wider">
-                        Value
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredHeaders.map(([key, val]) => (
-                      <tr
-                        key={key}
-                        className="border-b border-[#FAF3E1] dark:border-[#1F1F23] hover:bg-[#FAF3E1]/40 dark:hover:bg-[#141416] transition-colors"
-                      >
-                        <td className="py-2 px-3 font-semibold text-[#FF6D1F] align-top select-text">
-                          {key}
-                        </td>
-                        <td className="py-2 px-3 text-[#222222] dark:text-[#F5F5F7] break-all select-text">
-                          {String(val)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
+            <ResponseHeaders
+              headers={res.headers}
+              searchQuery={searchQuery}
+            />
+          ) : activeTab === "cookies" ? (
+            <ResponseCookies headers={res.headers} />
+          ) : activeTab === "info" ? (
+            <ResponseInfo response={res} />
           ) : (
-            /* Response Body Formatted / Raw View */
-            <pre className="text-xs font-mono text-[#222222] dark:text-[#F5F5F7] leading-relaxed overflow-x-auto p-4 select-text flex-1">
-              {filteredBody || "(Empty response body)"}
-            </pre>
+            <ResponseBody
+              data={res.data}
+              searchQuery={searchQuery}
+            />
           )
         ) : (
           /* Empty State */
