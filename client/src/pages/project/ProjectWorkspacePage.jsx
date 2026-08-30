@@ -12,11 +12,11 @@ import DeleteCollectionModal from "../../components/collections/DeleteCollection
 import CreateRequestModal from "../../components/requests/CreateRequestModal";
 import EditRequestModal from "../../components/requests/EditRequestModal";
 import DeleteRequestModal from "../../components/requests/DeleteRequestModal";
-import requestThunk from "../../features/request/request.Thunk.js";
-import { setCurrentRequest, clearCurrentRequest } from "../../features/request/requestSlice.js";
+import requestThunk from "../../features/request/request.Thunk";
+import { setCurrentRequest, clearCurrentRequest } from "../../features/request/requestSlice";
 import WorkspaceExplorer from "../../components/workspace/WorkspaceExplorer";
 import RequestCenter from "../../components/workspace/RequestCenter";
-import environmentThunks from "../../features/environment/environment.thunk.js";
+import environmentThunks from "../../features/environment/environment.thunk";
 import EnvironmentSelector from "../../components/environments/EnvironmentSelector";
 import EnvironmentEditor from "../../components/environments/EnvironmentEditor";
 import RequestHistoryViewer from "../../components/history/RequestHistoryViewer";

@@ -1,12 +1,12 @@
 import React from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import ProtectedRoute from "./ProtectedRoute";
-import PublicOnlyRoute from "./PublicOnlyRoute";
-import LandingPage from "../pages/LandingPage";
-import LoginPage from "../pages/LoginPage";
-import RegisterPage from "../pages/RegisterPage";
-import DashboardPage from "../pages/dashboard/DashboardPage";
-import ProjectWorkspacePage from "../pages/project/ProjectWorkspacePage";
+import ProtectedRoute from "./ProtectedRoute.jsx";
+import PublicOnlyRoute from "./PublicOnlyRoute.jsx";
+import LandingPage from "../pages/LandingPage.jsx";
+import LoginPage from "../pages/LoginPage.jsx";
+import RegisterPage from "../pages/RegisterPage.jsx";
+import DashboardPage from "../pages/dashboard/DashboardPage.jsx";
+import ProjectWorkspacePage from "../pages/project/ProjectWorkspacePage.jsx";
 
 function AppRouter() {
   const router = createBrowserRouter([
@@ -27,7 +27,6 @@ function AppRouter() {
         },
       ],
     },
-
     {
       element: <ProtectedRoute />,
       children: [
@@ -39,15 +38,11 @@ function AppRouter() {
           path: "/projects/:projectId",
           element: <ProjectWorkspacePage />,
         },
-        {
-          path: "/profile",
-          element: <div>User Profile (Protected Placeholder)</div>,
-        },
       ],
     },
     {
       path: "*",
-      element: <div>404 - Page Not Found</div>,
+      element: <LandingPage />,
     },
   ]);
 
