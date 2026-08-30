@@ -16,6 +16,7 @@ import RequestCenter from "../../components/workspace/RequestCenter";
 import environmentThunks from "../../features/environment/environment.thunk.js";
 import EnvironmentSelector from "../../components/environments/EnvironmentSelector";
 import EnvironmentEditor from "../../components/environments/EnvironmentEditor";
+import RequestHistoryViewer from "../../components/history/RequestHistoryViewer";
 import {
   Folder,
   Clock,
@@ -56,15 +57,21 @@ function ProjectWorkspacePage() {
   const { requests, currentRequest } = useSelector((state) => state.request);
 
   const [copied, setCopied] = useState(false);
-  const [activeView, setActiveView] = useState("request"); // 'request' | 'environment'
+  const [activeView, setActiveView] = useState("request"); // 'request' | 'environment' | 'historyViewer'
   const [sidebarTab, setSidebarTab] = useState("collections"); // 'collections' | 'environments' | 'history'
   const [selectedEnvironment, setSelectedEnvironment] = useState(null);
   const [selectedCollection, setSelectedCollection] = useState(null);
+  const [selectedExecutionHistory, setSelectedExecutionHistory] = useState(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const handleSelectRequest = (req) => {
     dispatch(setCurrentRequest(req));
     setActiveView("request");
+  };
+
+  const handleSelectHistoryExecution = (executionItem) => {
+    setSelectedExecutionHistory(executionItem);
+    setActiveView("historyViewer");
   };
 
   // Modal / Form Visibility States
@@ -341,6 +348,7 @@ function ProjectWorkspacePage() {
             setSelectedEnvironment(env);
             setActiveView("environment");
           }}
+          onSelectHistoryExecution={handleSelectHistoryExecution}
         />
 
         {/* Right: API Request Center or Auxiliary Views */}
@@ -356,6 +364,23 @@ function ProjectWorkspacePage() {
                   selectedCollection || collections?.[0] || null
                 );
                 setIsCreateRequestModalOpen(true);
+              }}
+            />
+          )}
+
+          {/* 2. History Execution Detail Viewer */}
+          {activeView === "historyViewer" && (
+            <RequestHistoryViewer
+              execution={selectedExecutionHistory}
+              project={currentProject}
+              onBack={() => {
+                setSelectedExecutionHistory(null);
+                setActiveView("request");
+              }}
+              onLoadIntoEditor={(req) => {
+                dispatch(setCurrentRequest(req));
+                setSelectedExecutionHistory(null);
+                setActiveView("request");
               }}
             />
           )}

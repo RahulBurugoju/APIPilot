@@ -70,6 +70,7 @@ function WorkspaceExplorer({
   onSelectSidebarTab,
   selectedEnvironment,
   onSelectEnvironment,
+  onSelectHistoryExecution,
 }) {
   const dispatch = useDispatch();
   const projectId = project?._id;
@@ -141,20 +142,23 @@ function WorkspaceExplorer({
   };
 
   const handleSelectHistoryItem = (item) => {
-    if (!onSelectRequest) return;
-    const matched = requests.find((r) => String(r._id) === String(item.requestId));
-    if (matched) {
-      onSelectRequest(matched);
-    } else {
-      onSelectRequest({
-        _id: item.requestId || "history_temp",
-        name: item.name || "Executed Request",
-        method: item.method || "GET",
-        url: item.url || "",
-      });
-    }
-    if (onSelectView) {
-      onSelectView("request");
+    if (onSelectHistoryExecution) {
+      onSelectHistoryExecution(item);
+    } else if (onSelectRequest) {
+      const matched = requests.find((r) => String(r._id) === String(item.requestId));
+      if (matched) {
+        onSelectRequest(matched);
+      } else {
+        onSelectRequest({
+          _id: item.requestId || "history_temp",
+          name: item.name || "Executed Request",
+          method: item.method || "GET",
+          url: item.url || "",
+        });
+      }
+      if (onSelectView) {
+        onSelectView("request");
+      }
     }
   };
 
