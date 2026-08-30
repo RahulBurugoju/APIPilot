@@ -510,7 +510,9 @@ function RequestCenter({ project, request, onNewRequest }) {
               error={executionError}
               endpoint={combinedUrl || url}
               onClearResponse={() => dispatch(clearExecutionResponse())}
+              onRetry={handleSend}
             />
+
           </div>
         </div>
       </div>

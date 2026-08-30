@@ -1,4 +1,34 @@
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
+import { Check, Copy } from "lucide-react";
+
+/**
+ * Small inline copy button for a single header value.
+ */
+function CopyValueButton({ value }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = (e) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(String(value));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      className="opacity-0 group-hover:opacity-100 ml-1.5 p-0.5 rounded text-[#8C8C8C] hover:text-[#FF6D1F] transition-all cursor-pointer"
+      title="Copy value"
+    >
+      {copied ? (
+        <Check className="w-3 h-3 text-[#059669] dark:text-[#00E599]" />
+      ) : (
+        <Copy className="w-3 h-3" />
+      )}
+    </button>
+  );
+}
 
 export default function ResponseHeaders({
   headers = {},
@@ -44,13 +74,16 @@ export default function ResponseHeaders({
           {filteredHeaders.map(([key, val]) => (
             <tr
               key={key}
-              className="border-b border-[#FAF3E1] dark:border-[#1F1F23] hover:bg-[#FAF3E1]/40 dark:hover:bg-[#141416] transition-colors"
+              className="group border-b border-[#FAF3E1] dark:border-[#1F1F23] hover:bg-[#FAF3E1]/40 dark:hover:bg-[#141416] transition-colors"
             >
               <td className="py-2 px-3 font-semibold text-[#FF6D1F] align-top select-text">
                 {key}
               </td>
               <td className="py-2 px-3 text-[#222222] dark:text-[#F5F5F7] break-all select-text">
-                {String(val)}
+                <span className="inline-flex items-center">
+                  <span>{String(val)}</span>
+                  <CopyValueButton value={val} />
+                </span>
               </td>
             </tr>
           ))}

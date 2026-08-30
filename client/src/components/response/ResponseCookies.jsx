@@ -1,5 +1,36 @@
-import { useMemo } from "react";
-import { Cookie } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Cookie, Eye, EyeOff } from "lucide-react";
+
+/**
+ * Cookie names that should have their values masked by default.
+ */
+const SENSITIVE_COOKIE_NAMES = [
+  "session",
+  "sessionid",
+  "session_id",
+  "sid",
+  "connect.sid",
+  "refreshtoken",
+  "refresh_token",
+  "accesstoken",
+  "access_token",
+  "token",
+  "jwt",
+  "csrf",
+  "csrftoken",
+  "csrf_token",
+  "xsrf-token",
+  "_csrf",
+  "auth",
+  "authorization",
+];
+
+/**
+ * Check if a cookie name is considered sensitive.
+ */
+function isSensitiveCookie(name) {
+  return SENSITIVE_COOKIE_NAMES.includes(name.toLowerCase());
+}
 
 /**
  * Parse Set-Cookie or cookie headers into structured entries.
@@ -24,10 +55,12 @@ function parseCookies(headers = {}) {
       const eqIndex = nameValue.indexOf("=");
 
       if (eqIndex > 0) {
+        const name = nameValue.substring(0, eqIndex).trim();
         cookies.push({
           id: `cookie_${idx}`,
-          name: nameValue.substring(0, eqIndex).trim(),
+          name,
           value: nameValue.substring(eqIndex + 1).trim(),
+          sensitive: isSensitiveCookie(name),
           attributes: attributes.map((a) => a.trim()).filter(Boolean),
           raw: cookieStr.trim(),
         });
@@ -36,6 +69,39 @@ function parseCookies(headers = {}) {
   }
 
   return cookies;
+}
+
+/**
+ * Inline sensitive-value toggle for a single cookie.
+ */
+function CookieValue({ value, sensitive }) {
+  const [revealed, setRevealed] = useState(false);
+
+  if (!sensitive) {
+    return (
+      <span className="text-[#222222] dark:text-[#F5F5F7]">{value}</span>
+    );
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <span className="text-[#222222] dark:text-[#F5F5F7]">
+        {revealed ? value : "••••••••••"}
+      </span>
+      <button
+        type="button"
+        onClick={() => setRevealed(!revealed)}
+        className="p-0.5 rounded text-[#8C8C8C] hover:text-[#FF6D1F] transition-colors cursor-pointer"
+        title={revealed ? "Hide value" : "Reveal value"}
+      >
+        {revealed ? (
+          <EyeOff className="w-3 h-3" />
+        ) : (
+          <Eye className="w-3 h-3" />
+        )}
+      </button>
+    </span>
+  );
 }
 
 export default function ResponseCookies({
@@ -79,11 +145,21 @@ export default function ResponseCookies({
               key={cookie.id}
               className="border-b border-[#FAF3E1] dark:border-[#1F1F23] hover:bg-[#FAF3E1]/40 dark:hover:bg-[#141416] transition-colors"
             >
-              <td className="py-2 px-3 font-semibold text-[#FF6D1F] align-top select-text">
-                {cookie.name}
+              <td className="py-2 px-3 align-top select-text">
+                <span className="font-semibold text-[#FF6D1F]">
+                  {cookie.name}
+                </span>
+                {cookie.sensitive && (
+                  <span className="ml-1.5 px-1 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider bg-[#FEF2F2] dark:bg-[#200B0D] text-[#DC2626] dark:text-[#F87171] border border-[#FECACA]/50 dark:border-[#7F1D1D]/50">
+                    sensitive
+                  </span>
+                )}
               </td>
-              <td className="py-2 px-3 text-[#222222] dark:text-[#F5F5F7] break-all select-text max-w-[200px] truncate">
-                {cookie.value}
+              <td className="py-2 px-3 break-all select-text max-w-[200px]">
+                <CookieValue
+                  value={cookie.value}
+                  sensitive={cookie.sensitive}
+                />
               </td>
               <td className="py-2 px-3 text-[#8C8C8C] dark:text-[#A1A1A6] select-text">
                 {cookie.attributes.length > 0 ? (

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Check,
   Copy,
@@ -8,6 +8,7 @@ import {
   Search,
   X,
   ServerOff,
+  RotateCw,
 } from "lucide-react";
 
 import ResponseHeader from "./ResponseHeader";
@@ -16,7 +17,7 @@ import ResponseBody from "./ResponseBody";
 import ResponseHeaders from "./ResponseHeaders";
 import ResponseCookies from "./ResponseCookies";
 import ResponseInfo from "./ResponseInfo";
-import { formatResponseBody } from "./responseUtils";
+import { formatResponseBody } from "../../utils/formatResponse";
 
 /**
  * Count cookies from response headers.
@@ -31,30 +32,65 @@ function countCookies(headers = {}) {
   return String(val).split(/,(?=\s*\w+=)/).length;
 }
 
+/**
+ * Resolve content type from a normalized response object.
+ */
+function resolveContentType(res) {
+  if (!res) return "";
+  return (
+    res.contentType ||
+    res.headers?.["content-type"] ||
+    res.headers?.["Content-Type"] ||
+    ""
+  );
+}
+
 function ResponseViewer({
   response = null,
   loading = false,
   error = null,
   endpoint = "",
   onClearResponse,
+  onRetry,
 }) {
   const [activeTab, setActiveTab] = useState("body"); // "body" | "headers" | "cookies" | "info"
   const [copied, setCopied] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
 
-  // Normalize response in case it is nested under .result or .data
-  const res = response?.result || response?.data?.result || response;
+  // Preserve previous response during loading — don't blank the panel
+  const lastResponseRef = useRef(null);
+  const normalizeResponse = (r) => r?.result || r?.data?.result || r;
+
+  const rawRes = normalizeResponse(response);
+
+  // Update the cached response only when we get a new non-null value
+  useEffect(() => {
+    if (rawRes && !loading) {
+      lastResponseRef.current = rawRes;
+    }
+  }, [rawRes, loading]);
+
+  // During loading, show previous response underneath the overlay
+  const res = loading ? (lastResponseRef.current || rawRes) : rawRes;
+  const contentType = resolveContentType(res);
 
   const headerEntries = res?.headers ? Object.entries(res.headers) : [];
   const cookieCount = res?.headers ? countCookies(res.headers) : 0;
 
   const handleCopy = () => {
     if (!res) return;
-    const textToCopy =
-      activeTab === "headers"
-        ? JSON.stringify(res.headers || {}, null, 2)
-        : formatResponseBody(res.data, true);
+    let textToCopy = "";
+
+    if (activeTab === "headers") {
+      textToCopy = JSON.stringify(res.headers || {}, null, 2);
+    } else {
+      // Use content-type-aware formatting to copy properly formatted JSON
+      textToCopy = formatResponseBody(res.data, {
+        pretty: true,
+        contentType,
+      });
+    }
 
     navigator.clipboard.writeText(textToCopy);
     setCopied(true);
@@ -64,7 +100,24 @@ function ResponseViewer({
   const isOffline = res?.status === 0 || res?.data?.code === "ECONNREFUSED";
 
   return (
-    <div className="rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] shadow-xs flex flex-col flex-1 min-h-[200px] overflow-hidden">
+    <div className="rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] shadow-xs flex flex-col flex-1 min-h-[200px] overflow-hidden relative">
+      {/* Loading Overlay — previous response stays visible underneath */}
+      {loading && res && (
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/70 dark:bg-[#141416]/80 backdrop-blur-[2px]">
+          <div className="relative mb-3">
+            <div className="w-10 h-10 rounded-full border-2 border-[#FF6D1F]/20 border-t-[#FF6D1F] animate-spin" />
+          </div>
+          <p className="text-xs font-mono font-semibold text-[#222222] dark:text-[#F5F5F7]">
+            Sending request...
+          </p>
+          {endpoint && (
+            <p className="text-[11px] font-mono text-[#8C8C8C] dark:text-[#6E6E73] mt-1 truncate max-w-[440px]">
+              {endpoint}
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Response Header Bar */}
       <div className="flex items-center justify-between px-3.5 py-2 border-b border-[#FAF3E1] dark:border-[#1F1F23] bg-[#FAF3E1]/40 dark:bg-[#18181B]/60 shrink-0 flex-wrap gap-2">
         <ResponseHeader response={res} loading={loading} />
@@ -160,8 +213,8 @@ function ResponseViewer({
 
       {/* Response Content Area */}
       <div className="flex-1 overflow-auto bg-[#FAF3E1]/15 dark:bg-[#0B0B0D]/70 flex flex-col">
-        {loading ? (
-          /* Loading State */
+        {loading && !res ? (
+          /* First-time Loading State (no previous response) */
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
             <div className="relative mb-3">
               <div className="w-10 h-10 rounded-full border-2 border-[#FF6D1F]/20 border-t-[#FF6D1F] animate-spin" />
@@ -176,17 +229,27 @@ function ResponseViewer({
             )}
           </div>
         ) : error && !res ? (
-          /* Error State */
+          /* Error State — Execution Failure (timeout, network, etc.) */
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
             <div className="w-10 h-10 rounded-full bg-[#FEE2E2] dark:bg-[#200B0D] border border-[#FECACA] dark:border-[#7F1D1D] flex items-center justify-center text-[#DC2626] dark:text-[#F87171] mb-2.5">
               <AlertCircle className="w-5 h-5" />
             </div>
             <p className="text-xs font-semibold text-[#DC2626] dark:text-[#F87171]">
-              Could not get any response
+              Request failed
             </p>
             <p className="text-[11px] font-mono text-[#8C8C8C] dark:text-[#6E6E73] mt-1.5 max-w-[480px] leading-relaxed">
               {error}
             </p>
+            {onRetry && (
+              <button
+                type="button"
+                onClick={onRetry}
+                className="mt-4 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#FF6D1F] hover:bg-[#E85B0F] text-white text-[11px] font-semibold transition-colors cursor-pointer shadow-sm"
+              >
+                <RotateCw className="w-3 h-3" />
+                Try Again
+              </button>
+            )}
           </div>
         ) : res ? (
           isOffline ? (
@@ -219,6 +282,16 @@ function ResponseViewer({
                   • For local services, check firewall or localhost resolution settings.
                 </p>
               </div>
+              {onRetry && (
+                <button
+                  type="button"
+                  onClick={onRetry}
+                  className="mt-4 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#FF6D1F] hover:bg-[#E85B0F] text-white text-[11px] font-semibold transition-colors cursor-pointer shadow-sm"
+                >
+                  <RotateCw className="w-3 h-3" />
+                  Try Again
+                </button>
+              )}
             </div>
           ) : activeTab === "headers" ? (
             <ResponseHeaders
@@ -232,24 +305,21 @@ function ResponseViewer({
           ) : (
             <ResponseBody
               data={res.data}
+              contentType={contentType}
               searchQuery={searchQuery}
             />
           )
         ) : (
-          /* Empty State */
+          /* Empty State — No Response Yet */
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-[#8C8C8C] dark:text-[#6E6E73]">
             <div className="w-12 h-12 rounded-full bg-[#FAF3E1] dark:bg-[#1C1C1F] border border-[#E6D2A5]/70 dark:border-[#2C2C2E] flex items-center justify-center mx-auto mb-2 text-[#FF6D1F]">
               <Send className="w-5 h-5 opacity-70" />
             </div>
             <p className="text-xs font-semibold text-[#5C5C5C] dark:text-[#A1A1A6]">
-              Ready to Send
+              No response yet
             </p>
             <p className="text-[11px] text-[#8C8C8C] dark:text-[#6E6E73] mt-0.5">
-              Click <span className="font-semibold text-[#FF6D1F]">Send</span> or press{" "}
-              <kbd className="px-1 py-0.5 rounded bg-[#FAF3E1] dark:bg-[#1C1C1F] border border-[#E6D2A5] dark:border-[#2C2C2E] text-[10px] font-mono">
-                Enter
-              </kbd>{" "}
-              to test this endpoint.
+              Send the request to see the result.
             </p>
           </div>
         )}

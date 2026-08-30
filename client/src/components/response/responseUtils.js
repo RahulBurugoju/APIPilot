@@ -53,28 +53,13 @@ export function formatBytes(bytes) {
 }
 
 /**
- * Formats response body data into a displayable string.
- *
- * @param {*} data - Response data (object, string, or other)
- * @param {boolean} isPretty - Whether to pretty-print JSON
- * @returns {string}
+ * Re-export the content-type-aware formatter from the centralized utility.
+ * Legacy signature preserved for backward compat: formatResponseBody(data, isPretty)
  */
-export function formatResponseBody(data, isPretty = true) {
-  if (data === undefined || data === null) return "";
-  if (typeof data === "object") {
-    try {
-      return JSON.stringify(data, null, isPretty ? 2 : 0);
-    } catch {
-      return String(data);
-    }
-  }
-  if (typeof data === "string") {
-    try {
-      const parsed = JSON.parse(data);
-      return JSON.stringify(parsed, null, isPretty ? 2 : 0);
-    } catch {
-      return data;
-    }
-  }
-  return String(data);
-}
+export {
+  formatResponseBody,
+  formatResponseBodyLegacy,
+  isJsonContentType,
+  detectContentType,
+} from "../../utils/formatResponse";
+

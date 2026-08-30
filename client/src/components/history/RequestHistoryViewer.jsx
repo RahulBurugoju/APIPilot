@@ -378,8 +378,9 @@ export default function RequestHistoryViewer({
                   data: responseData.data,
                   duration: responseData.duration || duration,
                   size: responseData.size || size,
+                  contentType: responseData.contentType || "",
                 }}
-                isSending={false}
+                loading={false}
               />
             ) : (
               <div className="p-8 text-center space-y-2 text-[#8C8C8C]">
