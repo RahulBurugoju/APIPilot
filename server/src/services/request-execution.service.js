@@ -3,11 +3,13 @@ import axios from "axios";
 import Request from "../models/request.model.js";
 import Collection from "../models/collection.model.js";
 import Project from "../models/project.model.js";
+import Environment from "../models/environment.model.js";
 
 import { ApiError } from "../utils/ApiError.js";
 import buildRequestUrl from "../utils/buildRequestUrl.js";
+import resolveVariables from "../utils/resolveVariables.js";
 
-const getRequestContext = async ({ projectId, collectionId, requestId }) => {
+const getRequestContext = async ({ projectId, collectionId, requestId, environmentId }) => {
     const project = await Project.findById(projectId);
     if (!project) {
         throw new ApiError(404, "Project not found");
@@ -26,7 +28,21 @@ const getRequestContext = async ({ projectId, collectionId, requestId }) => {
         throw new ApiError(404, "Request not found");
     }
 
-    return { project, collection, request };
+    // Retrieve active environment for the project (or explicitly requested environmentId)
+    let activeEnvironment = null;
+    if (environmentId) {
+        activeEnvironment = await Environment.findOne({
+            _id: environmentId,
+            project: projectId,
+        });
+    } else {
+        activeEnvironment = await Environment.findOne({
+            project: projectId,
+            isActive: true,
+        });
+    }
+
+    return { project, collection, request, activeEnvironment };
 };
 
 const buildQueryParams = (queryParams = []) => {
@@ -116,6 +132,7 @@ const applyAuthentication = ({
 const buildRequestBody = ({
     body,
     method,
+    variables = [],
 }) => {
     if (
         !body ||
@@ -140,8 +157,11 @@ const buildRequestBody = ({
             return undefined;
         }
 
+        // Resolve variables inside JSON string before parsing
+        const resolvedContent = resolveVariables(body.content, variables);
+
         try {
-            return JSON.parse(body.content);
+            return JSON.parse(resolvedContent);
         } catch {
             throw new ApiError(
                 400,
@@ -153,13 +173,13 @@ const buildRequestBody = ({
     if (
         body.type === "text"
     ) {
-        return body.content;
+        return resolveVariables(body.content || "", variables);
     }
 
     if (
         body.type === "urlencoded"
     ) {
-        return body.content;
+        return resolveVariables(body.content || "", variables);
     }
 
     return undefined;
@@ -169,31 +189,52 @@ const executeRequest = async ({
     projectId,
     collectionId,
     requestId,
+    environmentId,
 }) => {
-    const { project, collection, request } = await getRequestContext({
+    const { project, collection, request, activeEnvironment } = await getRequestContext({
         projectId,
         collectionId,
-        requestId
+        requestId,
+        environmentId,
     });
 
-    const effectiveBaseUrl = collection.baseUrl || project.baseUrl;
+    const variables = activeEnvironment?.variables || [];
+
+    // 1. Resolve URL (both base URL and relative endpoint)
+    const effectiveBaseUrl = collection.baseUrl || project.baseUrl || "";
+    const resolvedBaseUrl = resolveVariables(effectiveBaseUrl, variables);
+    const resolvedReqUrl = resolveVariables(request.url || "", variables);
+
     const url = buildRequestUrl({
-        baseUrl: effectiveBaseUrl,
-        reqUrl: request.url
+        baseUrl: resolvedBaseUrl,
+        reqUrl: resolvedReqUrl,
     });
 
-    const queryParams = buildQueryParams(request.queryParams);
-    const headers = buildHeaders(request.headers);
+    // 2. Resolve Query Params
+    const rawQueryParams = buildQueryParams(request.queryParams);
+    const resolvedQueryParams = resolveVariables(rawQueryParams, variables);
+
+    // 3. Resolve Headers
+    const rawHeaders = buildHeaders(request.headers);
+    const resolvedHeaders = resolveVariables(rawHeaders, variables);
+
+    // 4. Resolve Auth
+    const rawAuth = request.auth
+        ? (request.auth.toObject ? request.auth.toObject() : request.auth)
+        : null;
+    const resolvedAuth = resolveVariables(rawAuth, variables);
 
     const authentication = applyAuthentication({
-        auth: request.auth,
-        headers,
-        queryParams
+        auth: resolvedAuth,
+        headers: resolvedHeaders,
+        queryParams: resolvedQueryParams,
     });
 
+    // 5. Resolve Body
     const body = buildRequestBody({
         body: request.body,
-        method: request.method
+        method: request.method,
+        variables,
     });
 
     const config = {
