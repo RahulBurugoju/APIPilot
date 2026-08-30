@@ -16,9 +16,12 @@ import {
   CheckCircle2,
   AlertCircle,
   FileCode,
+  FolderPlus,
+  FilePlus,
 } from "lucide-react";
 import CollectionTree from "../collections/CollectionTree";
 import CreateEnvironmentModal from "../environments/CreateEnvironmentModal";
+import ContextMenu from "../common/ContextMenu";
 import environmentThunks from "../../features/environment/environment.thunk.js";
 
 const METHOD_COLORS = {
@@ -66,6 +69,8 @@ function WorkspaceExplorer({
   onCreateSubCollection,
   onEditCollection,
   onDeleteCollection,
+  onEditRequest,
+  onDeleteRequest,
   sidebarTab: controlledTab,
   onSelectSidebarTab,
   selectedEnvironment,
@@ -74,6 +79,12 @@ function WorkspaceExplorer({
 }) {
   const dispatch = useDispatch();
   const projectId = project?._id;
+
+  // Plus button popover menu state
+  const [plusMenu, setPlusMenu] = useState({
+    isOpen: false,
+    position: { x: 0, y: 0 },
+  });
 
   // Sidebar Tab: 'collections' | 'environments' | 'history'
   const [internalTab, setInternalTab] = useState("collections");
@@ -200,13 +211,42 @@ function WorkspaceExplorer({
             {onNewCollection && (
               <button
                 type="button"
-                onClick={onNewCollection}
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  setPlusMenu({
+                    isOpen: true,
+                    position: { x: rect.left, y: rect.bottom + 4 },
+                  });
+                }}
                 className="p-1 rounded hover:bg-[#F5E7C6] dark:hover:bg-[#1C1C1F] text-[#5C5C5C] dark:text-[#A1A1A6] hover:text-[#FF6D1F] transition-colors cursor-pointer"
-                title="New Root Collection"
+                title="Create Collection or Request"
               >
                 <Plus className="w-3.5 h-3.5" />
               </button>
             )}
+
+            {/* Plus Button Context Menu Popover */}
+            <ContextMenu
+              isOpen={plusMenu.isOpen}
+              onClose={() => setPlusMenu((prev) => ({ ...prev, isOpen: false }))}
+              position={plusMenu.position}
+              items={[
+                {
+                  label: "New Root Collection",
+                  icon: FolderPlus,
+                  onClick: () => {
+                    if (onNewCollection) onNewCollection();
+                  },
+                },
+                {
+                  label: "New Request",
+                  icon: FilePlus,
+                  onClick: () => {
+                    if (onNewRequest) onNewRequest(selectedCollection || null);
+                  },
+                },
+              ]}
+            />
           </div>
         </div>
       </div>
@@ -274,6 +314,8 @@ function WorkspaceExplorer({
               onEditCollection={onEditCollection}
               onDeleteCollection={onDeleteCollection}
               onAddRequest={onNewRequest}
+              onEditRequest={onEditRequest}
+              onDeleteRequest={onDeleteRequest}
             />
           </div>
         )}

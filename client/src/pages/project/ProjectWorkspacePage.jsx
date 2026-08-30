@@ -7,8 +7,11 @@ import ThemeToggle from "../../components/common/ThemeToggle";
 import EditProjectModal from "../../components/projects/EditProjectModal";
 import DeleteProjectModal from "../../components/projects/DeleteProjectModal";
 import CreateCollectionModal from "../../components/collections/CreateCollectionModal";
+import EditCollectionModal from "../../components/collections/EditCollectionModal";
 import DeleteCollectionModal from "../../components/collections/DeleteCollectionModal";
 import CreateRequestModal from "../../components/requests/CreateRequestModal";
+import EditRequestModal from "../../components/requests/EditRequestModal";
+import DeleteRequestModal from "../../components/requests/DeleteRequestModal";
 import requestThunk from "../../features/request/request.Thunk.js";
 import { setCurrentRequest, clearCurrentRequest } from "../../features/request/requestSlice.js";
 import WorkspaceExplorer from "../../components/workspace/WorkspaceExplorer";
@@ -78,17 +81,19 @@ function ProjectWorkspacePage() {
   // Modal / Form Visibility States
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isCreateCollectionModalOpen, setIsCreateCollectionModalOpen] =
-    useState(false);
-  const [parentCollectionForCreate, setParentCollectionForCreate] =
-    useState(null);
+  const [isCreateCollectionModalOpen, setIsCreateCollectionModalOpen] = useState(false);
+  const [parentCollectionForCreate, setParentCollectionForCreate] = useState(null);
+  const [collectionToEdit, setCollectionToEdit] = useState(null);
+  const [isEditCollectionModalOpen, setIsEditCollectionModalOpen] = useState(false);
   const [collectionToDelete, setCollectionToDelete] = useState(null);
-  const [isDeleteCollectionModalOpen, setIsDeleteCollectionModalOpen] =
-    useState(false);
-  const [isCreateRequestModalOpen, setIsCreateRequestModalOpen] =
-    useState(false);
-  const [targetCollectionForRequest, setTargetCollectionForRequest] =
-    useState(null);
+  const [isDeleteCollectionModalOpen, setIsDeleteCollectionModalOpen] = useState(false);
+
+  const [isCreateRequestModalOpen, setIsCreateRequestModalOpen] = useState(false);
+  const [targetCollectionForRequest, setTargetCollectionForRequest] = useState(null);
+  const [requestToEdit, setRequestToEdit] = useState(null);
+  const [isEditRequestModalOpen, setIsEditRequestModalOpen] = useState(false);
+  const [requestToDelete, setRequestToDelete] = useState(null);
+  const [isDeleteRequestModalOpen, setIsDeleteRequestModalOpen] = useState(false);
 
   useEffect(() => {
     if (projectId) {
@@ -198,108 +203,105 @@ function ProjectWorkspacePage() {
 
             <span className="text-[#8C8C8C] dark:text-[#6E6E73] font-mono">/</span>
 
-            <span className="font-semibold text-[#222222] dark:text-[#F5F5F7] truncate max-w-[180px] sm:max-w-xs">
-              {currentProject?.name || "My API"}
-            </span>
-
-            <span className="px-1.5 py-0.5 rounded bg-[#FAF3E1] dark:bg-[#1C1C1F] border border-[#E6D2A5] dark:border-[#2C2C2E] text-[10px] font-mono font-semibold uppercase text-[#FF6D1F]">
-              {currentProject?.projectType || "REST"}
-            </span>
-
-            {/* Live Auto-save status */}
-            <div
-              className={`hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-medium border ${
-                currentProject?.settings?.autoSave ?? true
-                  ? "bg-[#ECFDF5] dark:bg-[#062417] text-[#059669] dark:text-[#00E599] border-[#A7F3D0] dark:border-[#104D30]"
-                  : "bg-[#F3F4F6] dark:bg-[#1C1C1F] text-[#6B7280] dark:text-[#8E8E93] border-[#E5E7EB] dark:border-[#2C2C2E]"
-              }`}
-            >
-              <span
-                className={`w-1.5 h-1.5 rounded-full ${
-                  (currentProject?.settings?.autoSave ?? true)
-                    ? "bg-[#059669] dark:bg-[#00E599] animate-pulse"
-                    : "bg-[#9CA3AF]"
-                }`}
-              />
-              <span>
-                Auto-save {(currentProject?.settings?.autoSave ?? true) ? "ON" : "OFF"}
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-[#222222] dark:text-[#F5F5F7]">
+                {currentProject?.name}
               </span>
+              <button
+                type="button"
+                onClick={handleCopyId}
+                className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded bg-[#F5E7C6] dark:bg-[#1C1C1F] border border-[#E6D2A5] dark:border-[#2C2C2E] text-[#5C5C5C] dark:text-[#A1A1A6] hover:text-[#222222] dark:hover:text-[#F5F5F7] transition-colors cursor-pointer"
+                title="Copy Project ID"
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-3 h-3 text-[#059669] dark:text-[#00E599]" />
+                    <span className="text-[#059669] dark:text-[#00E599]">Copied</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3 h-3" />
+                    <span>{currentProject?._id?.substring(0, 8)}...</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
 
-          {/* Right: Quick actions, Theme Toggle & User Menu */}
-          <div className="flex items-center gap-2.5">
-            {/* Environment Selector Dropdown (02.11.14) */}
+          {/* Center: Environment Selector */}
+          <div className="hidden sm:flex items-center gap-2">
             <EnvironmentSelector
               projectId={projectId}
-              onManageEnvironments={() => setSidebarTab("environments")}
+              selectedEnv={selectedEnvironment}
+              onSelectEnv={(env) => setSelectedEnvironment(env)}
             />
+          </div>
 
+          {/* Right: Actions, Theme Toggle & User Menu */}
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => setIsEditOpen(true)}
-              className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-[#FFFFFF] dark:bg-[#1C1C1F] hover:bg-[#F5E7C6] dark:hover:bg-[#2C2C2E] text-[#222222] dark:text-[#F5F5F7] border border-[#E6D2A5] dark:border-[#2C2C2E] text-xs font-medium transition-colors cursor-pointer"
+              className="p-1.5 rounded-md hover:bg-[#F5E7C6] dark:hover:bg-[#1C1C1F] text-[#5C5C5C] dark:text-[#A1A1A6] hover:text-[#222222] dark:hover:text-[#F5F5F7] border border-[#E6D2A5] dark:border-[#2C2C2E] transition-colors cursor-pointer"
+              title="Edit Project Settings"
             >
-              <Settings className="w-3.5 h-3.5 text-[#5C5C5C] dark:text-[#A1A1A6]" />
-              <span>Settings</span>
+              <Edit2 className="w-3.5 h-3.5" />
             </button>
+
+            <button
+              type="button"
+              onClick={() => setIsDeleteModalOpen(true)}
+              className="p-1.5 rounded-md hover:bg-[#FEE2E2] dark:hover:bg-[#2A1517] text-[#5C5C5C] dark:text-[#A1A1A6] hover:text-[#DC2626] dark:hover:text-[#F87171] border border-[#E6D2A5] dark:border-[#2C2C2E] transition-colors cursor-pointer"
+              title="Delete Project"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+
+            <div className="h-4 w-px bg-[#E6D2A5] dark:bg-[#2C2C2E] mx-1" />
 
             <ThemeToggle />
 
-            {/* User Dropdown Menu */}
+            {/* User Profile Menu Dropdown */}
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-[#FFFFFF] dark:bg-[#1C1C1F] hover:bg-[#F5E7C6] dark:hover:bg-[#2C2C2E] border border-[#E6D2A5] dark:border-[#2C2C2E] text-xs font-medium text-[#222222] dark:text-[#F5F5F7] transition-colors cursor-pointer select-none"
+                className="flex items-center gap-2 pl-2 pr-1 py-1 rounded-full hover:bg-[#F5E7C6] dark:hover:bg-[#1C1C1F] border border-[#E6D2A5] dark:border-[#2C2C2E] transition-colors cursor-pointer"
               >
-                <span className="truncate max-w-[100px]">
-                  {user?.name || user?.email?.split("@")[0] || "User"}
-                </span>
-                <ChevronDown className="w-3.5 h-3.5 text-[#8C8C8C] dark:text-[#6E6E73]" />
+                <div className="w-6 h-6 rounded-full bg-[#FF6D1F] text-white flex items-center justify-center font-bold text-xs">
+                  {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                </div>
+                <ChevronDown className="w-3 h-3 text-[#8C8C8C]" />
               </button>
 
               {isUserMenuOpen && (
-                <div
-                  className="absolute right-0 mt-1.5 w-48 rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] shadow-lg py-1.5 z-50 text-xs animate-in fade-in zoom-in-95 duration-100"
-                  onClick={() => setIsUserMenuOpen(false)}
-                >
+                <div className="absolute right-0 mt-2 w-48 rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] py-1 shadow-lg text-xs z-50 animate-in fade-in zoom-in-95 duration-100">
                   <div className="px-3 py-2 border-b border-[#FAF3E1] dark:border-[#1F1F23]">
                     <p className="font-semibold text-[#222222] dark:text-[#F5F5F7] truncate">
-                      {user?.name || "User Account"}
+                      {user?.name}
                     </p>
                     <p className="text-[11px] text-[#8C8C8C] dark:text-[#6E6E73] truncate">
                       {user?.email}
                     </p>
                   </div>
-
-                  <Link
-                    to="/dashboard"
-                    className="flex items-center gap-2 px-3 py-2 text-[#5C5C5C] dark:text-[#A1A1A6] hover:bg-[#FAF3E1] dark:hover:bg-[#1C1C1F] hover:text-[#222222] dark:hover:text-[#F5F5F7] transition-colors"
-                  >
-                    <LayoutDashboard className="w-3.5 h-3.5" />
-                    <span>All Projects</span>
-                  </Link>
-
                   <button
                     type="button"
                     onClick={() => {
                       setIsUserMenuOpen(false);
-                      setIsDeleteModalOpen(true);
+                      navigate("/dashboard");
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-[#DC2626] dark:text-[#F87171] hover:bg-[#FEE2E2] dark:hover:bg-[#2A1517] transition-colors text-left cursor-pointer"
+                    className="w-full px-3 py-1.5 flex items-center gap-2 text-[#5C5C5C] dark:text-[#A1A1A6] hover:text-[#222222] dark:hover:text-[#F5F5F7] hover:bg-[#FAF3E1] dark:hover:bg-[#1C1C1F] transition-colors"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>Delete Project</span>
+                    <LayoutDashboard className="w-3.5 h-3.5" />
+                    <span>Dashboard</span>
                   </button>
-
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-[#5C5C5C] dark:text-[#A1A1A6] hover:bg-[#FAF3E1] dark:hover:bg-[#1C1C1F] hover:text-[#222222] dark:hover:text-[#F5F5F7] transition-colors text-left cursor-pointer border-t border-[#FAF3E1] dark:border-[#1F1F23]"
+                    className="w-full px-3 py-1.5 flex items-center gap-2 text-[#DC2626] dark:text-[#F87171] hover:bg-[#FEF2F2] dark:hover:bg-[#200B0D] transition-colors"
                   >
                     <LogOut className="w-3.5 h-3.5" />
-                    <span>Sign out</span>
+                    <span>Logout</span>
                   </button>
                 </div>
               )}
@@ -338,9 +340,21 @@ function ProjectWorkspacePage() {
             setParentCollectionForCreate(parentCol);
             setIsCreateCollectionModalOpen(true);
           }}
+          onEditCollection={(col) => {
+            setCollectionToEdit(col);
+            setIsEditCollectionModalOpen(true);
+          }}
           onDeleteCollection={(col) => {
             setCollectionToDelete(col);
             setIsDeleteCollectionModalOpen(true);
+          }}
+          onEditRequest={(req) => {
+            setRequestToEdit(req);
+            setIsEditRequestModalOpen(true);
+          }}
+          onDeleteRequest={(req) => {
+            setRequestToDelete(req);
+            setIsDeleteRequestModalOpen(true);
           }}
           sidebarTab={sidebarTab}
           onSelectSidebarTab={setSidebarTab}
@@ -369,63 +383,31 @@ function ProjectWorkspacePage() {
             />
           )}
 
-          {/* 2. History Execution Detail Viewer */}
+          {/* 2. History Viewer */}
           {activeView === "historyViewer" && (
-            <RequestHistoryViewer
-              execution={selectedExecutionHistory}
-              project={currentProject}
-              onBack={() => {
-                setSelectedExecutionHistory(null);
-                setActiveView("request");
-              }}
-              onLoadIntoEditor={(req) => {
-                dispatch(setCurrentRequest(req));
-                setSelectedExecutionHistory(null);
-                setActiveView("request");
-              }}
-              onRunAgain={() => {
-                setSelectedExecutionHistory(null);
-                setActiveView("request");
-                if (currentRequest && currentProject) {
-                  dispatch(
-                    requestThunk.executeRequest({
-                      projectId: currentProject._id,
-                      collectionId:
-                        currentRequest.collection?._id ||
-                        currentRequest.collection,
-                      requestId: currentRequest._id,
-                    })
-                  );
-                }
-              }}
-              onClearHistory={() => {
-                if (currentProject && currentRequest) {
-                  dispatch(
-                    clearHistory({
-                      projectId: currentProject._id,
-                      requestId: currentRequest._id,
-                    })
-                  );
-                }
-              }}
-            />
+            <div className="flex-1 overflow-hidden p-4">
+              <RequestHistoryViewer
+                execution={selectedExecutionHistory}
+                onClose={() => setActiveView("request")}
+                onRunAgain={(exec) => {
+                  if (exec?.requestId) {
+                    const matchedReq = requests.find(
+                      (r) => String(r._id) === String(exec.requestId)
+                    );
+                    if (matchedReq) {
+                      dispatch(setCurrentRequest(matchedReq));
+                    }
+                  }
+                  setActiveView("request");
+                }}
+              />
+            </div>
           )}
 
-
-
-          {/* 4. Environment Editor (When an environment is selected) */}
+          {/* 3. Environment Details / Variables Editor */}
           {activeView === "environment" && selectedEnvironment && (
-            <div className="flex-1 p-6 h-full overflow-hidden flex flex-col">
-              <div className="mb-2.5">
-                <button
-                  type="button"
-                  onClick={() => setActiveView("request")}
-                  className="inline-flex items-center gap-1 text-xs text-[#5C5C5C] dark:text-[#A1A1A6] hover:text-[#FF6D1F] transition-colors cursor-pointer"
-                >
-                  <span>← Back to Request Center</span>
-                </button>
-              </div>
-              <div className="flex-1 min-h-0">
+            <div className="flex-1 overflow-hidden p-4">
+              <div className="h-full flex flex-col bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] rounded-lg p-4">
                 <EnvironmentEditor
                   environment={selectedEnvironment}
                   projectId={projectId}
@@ -453,14 +435,14 @@ function ProjectWorkspacePage() {
         parentCollection={parentCollectionForCreate}
       />
 
-      <CreateRequestModal
-        isOpen={isCreateRequestModalOpen}
+      <EditCollectionModal
+        isOpen={isEditCollectionModalOpen}
         onClose={() => {
-          setIsCreateRequestModalOpen(false);
-          setTargetCollectionForRequest(null);
+          setIsEditCollectionModalOpen(false);
+          setCollectionToEdit(null);
         }}
         projectId={projectId}
-        collection={targetCollectionForRequest}
+        collection={collectionToEdit}
       />
 
       <DeleteCollectionModal
@@ -471,6 +453,36 @@ function ProjectWorkspacePage() {
         }}
         projectId={projectId}
         collection={collectionToDelete}
+      />
+
+      <CreateRequestModal
+        isOpen={isCreateRequestModalOpen}
+        onClose={() => {
+          setIsCreateRequestModalOpen(false);
+          setTargetCollectionForRequest(null);
+        }}
+        projectId={projectId}
+        collection={targetCollectionForRequest}
+      />
+
+      <EditRequestModal
+        isOpen={isEditRequestModalOpen}
+        onClose={() => {
+          setIsEditRequestModalOpen(false);
+          setRequestToEdit(null);
+        }}
+        projectId={projectId}
+        request={requestToEdit}
+      />
+
+      <DeleteRequestModal
+        isOpen={isDeleteRequestModalOpen}
+        onClose={() => {
+          setIsDeleteRequestModalOpen(false);
+          setRequestToDelete(null);
+        }}
+        projectId={projectId}
+        request={requestToDelete}
       />
 
       <EditProjectModal

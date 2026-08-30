@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Folder,
   FolderOpen,
@@ -8,7 +8,9 @@ import {
   Trash2,
   FolderPlus,
   FilePlus,
+  MoreVertical,
 } from "lucide-react";
+import ContextMenu from "../common/ContextMenu";
 
 /**
  * Single Tree Item Component (Recursive)
@@ -25,9 +27,18 @@ export function CollectionTreeNode({
   onEditCollection,
   onDeleteCollection,
   onAddRequest,
+  onEditRequest,
+  onDeleteRequest,
   expandedNodes,
   toggleExpand,
 }) {
+  const [contextMenu, setContextMenu] = useState({
+    isOpen: false,
+    position: { x: 0, y: 0 },
+    type: null, // "collection" | "request"
+    targetItem: null,
+  });
+
   const isExpanded = expandedNodes[node._id] ?? false;
   const isSelected = selectedCollectionId && String(selectedCollectionId) === String(node._id);
 
@@ -40,13 +51,111 @@ export function CollectionTreeNode({
   const hasRequests = nodeRequests.length > 0;
   const canExpand = hasSubCollections || hasRequests;
 
+  const handleCollectionContextMenu = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onSelectCollection) onSelectCollection(node);
+    setContextMenu({
+      isOpen: true,
+      position: { x: e.clientX, y: e.clientY },
+      type: "collection",
+      targetItem: node,
+    });
+  };
+
+  const handleRequestContextMenu = (e, req) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onSelectRequest) onSelectRequest(req, node);
+    setContextMenu({
+      isOpen: true,
+      position: { x: e.clientX, y: e.clientY },
+      type: "request",
+      targetItem: req,
+    });
+  };
+
+  const closeContextMenu = () => {
+    setContextMenu((prev) => ({ ...prev, isOpen: false }));
+  };
+
+  // Menu items for Collection
+  const collectionMenuItems = [
+    {
+      label: "Add Request",
+      icon: FilePlus,
+      onClick: () => {
+        if (onAddRequest) onAddRequest(node);
+      },
+    },
+    {
+      label: "Add Sub-Collection",
+      icon: FolderPlus,
+      onClick: () => {
+        if (onCreateSubCollection) onCreateSubCollection(node);
+      },
+    },
+    { divider: true },
+    {
+      label: "Rename / Edit",
+      icon: Edit2,
+      shortcut: "Ctrl+E",
+      onClick: () => {
+        if (onEditCollection) onEditCollection(node);
+      },
+    },
+    {
+      label: "Delete Collection",
+      icon: Trash2,
+      danger: true,
+      shortcut: "Del",
+      onClick: () => {
+        if (onDeleteCollection) onDeleteCollection(node);
+      },
+    },
+  ];
+
+  // Menu items for Request
+  const requestMenuItems = [
+    {
+      label: "Rename / Edit",
+      icon: Edit2,
+      shortcut: "Ctrl+E",
+      onClick: () => {
+        if (onEditRequest && contextMenu.targetItem) {
+          onEditRequest(contextMenu.targetItem, node);
+        }
+      },
+    },
+    {
+      label: "Delete Request",
+      icon: Trash2,
+      danger: true,
+      shortcut: "Del",
+      onClick: () => {
+        if (onDeleteRequest && contextMenu.targetItem) {
+          onDeleteRequest(contextMenu.targetItem, node);
+        }
+      },
+    },
+  ];
+
   return (
     <div className="select-none space-y-0.5">
-      {/* Node Row */}
+      {/* Context Menu Popover */}
+      <ContextMenu
+        isOpen={contextMenu.isOpen}
+        onClose={closeContextMenu}
+        position={contextMenu.position}
+        items={contextMenu.type === "collection" ? collectionMenuItems : requestMenuItems}
+      />
+
+      {/* Collection Node Row */}
       <div
         onClick={() => {
           if (onSelectCollection) onSelectCollection(node);
         }}
+        onContextMenu={handleCollectionContextMenu}
         style={{ paddingLeft: `${Math.max(level * 12 + 8, 8)}px` }}
         className={`group relative flex items-center justify-between py-1.5 pr-2 rounded-md text-xs font-medium transition-all duration-150 cursor-pointer ${
           isSelected
@@ -104,8 +213,8 @@ export function CollectionTreeNode({
           )}
         </div>
 
-        {/* Right Side: Hover Quick Actions */}
-        <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity shrink-0">
+        {/* Right Side: Hover Quick Actions + 3 Dots Menu Button */}
+        <div className="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 transition-opacity shrink-0">
           {onAddRequest && (
             <button
               type="button"
@@ -134,33 +243,23 @@ export function CollectionTreeNode({
             </button>
           )}
 
-          {onEditCollection && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onEditCollection(node);
-              }}
-              className="p-1 rounded hover:bg-[#F5E7C6] dark:hover:bg-[#2C2C2E] text-[#5C5C5C] dark:text-[#A1A1A6] hover:text-[#222222] dark:hover:text-[#F5F5F7] transition-colors"
-              title="Edit Collection"
-            >
-              <Edit2 className="w-3 h-3" />
-            </button>
-          )}
-
-          {onDeleteCollection && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDeleteCollection(node);
-              }}
-              className="p-1 rounded hover:bg-red-500/20 text-[#5C5C5C] dark:text-[#A1A1A6] hover:text-red-500 transition-colors"
-              title="Delete Collection"
-            >
-              <Trash2 className="w-3 h-3" />
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              const rect = e.currentTarget.getBoundingClientRect();
+              setContextMenu({
+                isOpen: true,
+                position: { x: rect.left, y: rect.bottom + 4 },
+                type: "collection",
+                targetItem: node,
+              });
+            }}
+            className="p-1 rounded hover:bg-[#E6D2A5]/60 dark:hover:bg-[#2C2C2E] text-[#5C5C5C] dark:text-[#A1A1A6] hover:text-[#222222] dark:hover:text-[#F5F5F7] transition-colors"
+            title="Collection Options"
+          >
+            <MoreVertical className="w-3 h-3" />
+          </button>
         </div>
       </div>
 
@@ -183,6 +282,8 @@ export function CollectionTreeNode({
                 onEditCollection={onEditCollection}
                 onDeleteCollection={onDeleteCollection}
                 onAddRequest={onAddRequest}
+                onEditRequest={onEditRequest}
+                onDeleteRequest={onDeleteRequest}
                 expandedNodes={expandedNodes}
                 toggleExpand={toggleExpand}
               />
@@ -210,6 +311,7 @@ export function CollectionTreeNode({
                   e.stopPropagation();
                   if (onSelectRequest) onSelectRequest(req, node);
                 }}
+                onContextMenu={(e) => handleRequestContextMenu(e, req)}
                 style={{ paddingLeft: `${Math.max((level + 1) * 8 + 8, 12)}px` }}
                 className={`group flex items-center justify-between py-1 pr-2 rounded-md text-xs transition-all cursor-pointer ${
                   isReqSelected
@@ -217,7 +319,7 @@ export function CollectionTreeNode({
                     : "text-[#222222] dark:text-[#F5F5F7] hover:bg-[#F5E7C6]/50 dark:hover:bg-[#1C1C1F]"
                 }`}
               >
-                <div className="flex items-center gap-2 min-w-0">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
                   <span
                     className={`px-1.5 py-0.2 text-[9px] font-mono font-bold rounded shrink-0 ${
                       methodColors[req.method] || methodColors.GET
@@ -228,6 +330,27 @@ export function CollectionTreeNode({
                   <span className="truncate text-[11px] font-medium" title={req.name}>
                     {req.name}
                   </span>
+                </div>
+
+                {/* Right side: 3 Dots Menu Button for Request */}
+                <div className="opacity-0 group-hover:opacity-100 flex items-center transition-opacity shrink-0">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      setContextMenu({
+                        isOpen: true,
+                        position: { x: rect.left, y: rect.bottom + 4 },
+                        type: "request",
+                        targetItem: req,
+                      });
+                    }}
+                    className="p-1 rounded hover:bg-[#E6D2A5]/60 dark:hover:bg-[#2C2C2E] text-[#5C5C5C] dark:text-[#A1A1A6] hover:text-[#222222] dark:hover:text-[#F5F5F7] transition-colors"
+                    title="Request Options"
+                  >
+                    <MoreVertical className="w-3 h-3" />
+                  </button>
                 </div>
               </div>
             );

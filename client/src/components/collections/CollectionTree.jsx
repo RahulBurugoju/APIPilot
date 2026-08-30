@@ -1,9 +1,6 @@
 import React, { useState, useMemo } from "react";
 import {
   Plus,
-  Search,
-  ChevronsDown,
-  ChevronsUp,
   FolderTree,
 } from "lucide-react";
 import { buildCollectionTree } from "../../utils/buildCollectionTree";
@@ -24,9 +21,11 @@ export function CollectionTree({
   onDeleteCollection = null,
   onCreateRootCollection = null,
   onAddRequest = null,
+  onEditRequest = null,
+  onDeleteRequest = null,
   loading = false,
 }) {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery] = useState("");
   const [expandedNodes, setExpandedNodes] = useState({});
 
   // 1. Build nested tree if input collections are flat
@@ -68,26 +67,8 @@ export function CollectionTree({
     }));
   };
 
-  const expandAll = () => {
-    const newExpanded = {};
-    const traverse = (nodes) => {
-      nodes.forEach((n) => {
-        newExpanded[n._id] = true;
-        if (n.children && n.children.length > 0) traverse(n.children);
-      });
-    };
-    traverse(treeData);
-    setExpandedNodes(newExpanded);
-  };
-
-  const collapseAll = () => {
-    setExpandedNodes({});
-  };
-
   return (
     <div className="flex flex-col h-full bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] rounded-lg shadow-xs overflow-hidden">
-
-
       {/* Tree Content Area */}
       <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
         {loading ? (
@@ -114,6 +95,8 @@ export function CollectionTree({
               onEditCollection={onEditCollection}
               onDeleteCollection={onDeleteCollection}
               onAddRequest={onAddRequest}
+              onEditRequest={onEditRequest}
+              onDeleteRequest={onDeleteRequest}
               expandedNodes={expandedNodes}
               toggleExpand={toggleExpand}
             />
