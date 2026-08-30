@@ -96,22 +96,31 @@ const deleteRequest = asyncHandler(async (req, res) => {
 });
 
 const executeRequestController = asyncHandler(async (req, res) => {
-  const { projectId, collectionId, requestId } = req.params;
-  const environmentId =
-    req.query?.environmentId ||
-    req.headers["x-environment-id"] ||
-    req.body?.environmentId;
+    const { projectId, collectionId, requestId } = req.params;
+    const environmentId =
+        req.query?.environmentId ||
+        req.headers["x-environment-id"] ||
+        req.body?.environmentId;
 
-  const result = await executeRequest({
-    projectId,
-    collectionId,
-    requestId,
-    environmentId,
-  });
+    const userId = req.user?.Id || req.user?._id;
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, { result }, "Request executed successfully"));
+    const result = await executeRequest({
+        projectId,
+        collectionId,
+        requestId,
+        environmentId,
+        userId,
+    });
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                { result },
+                "Request executed successfully"
+            )
+        );
 });
 
 

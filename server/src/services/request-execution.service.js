@@ -8,6 +8,7 @@ import Environment from "../models/environment.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import buildRequestUrl from "../utils/buildRequestUrl.js";
 import resolveVariables from "../utils/resolveVariables.js";
+import { createExecution } from "./request-execution-history.service.js";
 
 const getRequestContext = async ({ projectId, collectionId, requestId, environmentId }) => {
     const project = await Project.findById(projectId);
@@ -190,6 +191,7 @@ const executeRequest = async ({
     collectionId,
     requestId,
     environmentId,
+    userId,
 }) => {
     const { project, collection, request, activeEnvironment } = await getRequestContext({
         projectId,
@@ -263,58 +265,6 @@ const executeRequest = async ({
     const startTime = Date.now();
     let response;
 
-    try {
-        response = await axios(config);
-    } catch (err) {
-        const duration = Date.now() - startTime;
-
-        // Handle request timeout (ECONNABORTED)
-        if (err.code === "ECONNABORTED" || err.message?.toLowerCase().includes("timeout")) {
-            return {
-                status: 408,
-                statusText: "Request Timeout",
-                headers: {},
-                data: {
-                    error: "Request Timeout",
-                    message: `Request timed out after ${config.timeout}ms`,
-                    code: "ECONNABORTED",
-                },
-                duration,
-                request: {
-                    method: request.method,
-                    url,
-                    queryParams,
-                    headers,
-                    hasAuth: !!(authentication.axiosAuth || request.auth?.type !== "none"),
-                },
-                size: 0,
-            };
-        }
-
-        // Target unreachable, connection refused, or DNS resolution failure (ECONNREFUSED, ENOTFOUND, etc.)
-        return {
-            status: 0,
-            statusText: err.code || "Network Error",
-            headers: {},
-            data: {
-                error: "Could not connect to target host",
-                message: err.message || "Connection refused or target host unreachable",
-                code: err.code || "ECONNREFUSED",
-            },
-            duration,
-            request: {
-                method: request.method,
-                url,
-                queryParams,
-                headers,
-                hasAuth: !!(authentication.axiosAuth || request.auth?.type !== "none"),
-            },
-            size: 0,
-        };
-    }
-
-    const duration = Date.now() - startTime;
-
     const getResponseSize = (
         resHeaders,
         resData
@@ -336,17 +286,158 @@ const executeRequest = async ({
         );
     };
 
-    const size = getResponseSize(
-        response.headers,
-        response.data
-    );
+    let normalizedResponse;
 
+    try {
+        response = await axios(config);
+        const duration = Date.now() - startTime;
+        const size = getResponseSize(
+            response.headers,
+            response.data
+        );
+
+        normalizedResponse = {
+            status: response.status,
+            statusText: response.statusText || "OK",
+            headers: response.headers || {},
+            data: response.data !== undefined ? response.data : null,
+            duration,
+            size,
+        };
+    } catch (err) {
+        const duration = Date.now() - startTime;
+
+        // Handle request timeout (ECONNABORTED)
+        if (
+            err.code === "ECONNABORTED" ||
+            err.message?.toLowerCase().includes("timeout")
+        ) {
+            normalizedResponse = {
+                status: 408,
+                statusText: "Request Timeout",
+                headers: {},
+                data: {
+                    error: "Request Timeout",
+                    message: `Request timed out after ${config.timeout}ms`,
+                    code: "ECONNABORTED",
+                },
+                duration,
+                size: 0,
+            };
+        } else {
+            // Target unreachable, connection refused, or DNS resolution failure
+            normalizedResponse = {
+                status: 0,
+                statusText: err.code || "Network Error",
+                headers: {},
+                data: {
+                    error: "Could not connect to target host",
+                    message:
+                        err.message ||
+                        "Connection refused or target host unreachable",
+                    code: err.code || "ECONNREFUSED",
+                },
+                duration,
+                size: 0,
+            };
+        }
+    }
+
+    // 6. Build Request Snapshot
+    const requestSnapshot = {
+        method: request.method,
+        url,
+        headers: (request.headers || []).map((h) => ({
+            key: h.key || "",
+            value: h.value || "",
+            enabled: h.enabled !== false,
+        })),
+        queryParams: (request.queryParams || []).map((q) => ({
+            key: q.key || "",
+            value: q.value || "",
+            enabled: q.enabled !== false,
+        })),
+        body: {
+            type: request.body?.type || "none",
+            content: request.body?.content || null,
+        },
+        auth: {
+            type: request.auth?.type || "none",
+            bearer: request.auth?.bearer
+                ? {
+                      token: request.auth.bearer.token || "",
+                  }
+                : undefined,
+            basic: request.auth?.basic
+                ? {
+                      username: request.auth.basic.username || "",
+                      password: request.auth.basic.password || "",
+                  }
+                : undefined,
+            apiKey: request.auth?.apiKey
+                ? {
+                      key: request.auth.apiKey.key || "",
+                      value: request.auth.apiKey.value || "",
+                      location: request.auth.apiKey.location || "header",
+                  }
+                : undefined,
+        },
+    };
+
+    // 7. Automatically Save Execution History
+    let savedExecution = null;
+    const resolvedUserId = userId || project.owner;
+
+    if (resolvedUserId) {
+        const isSuccess =
+            normalizedResponse.status >= 200 &&
+            normalizedResponse.status < 400;
+
+        const executionError =
+            !isSuccess &&
+            (normalizedResponse.status === 0 ||
+                normalizedResponse.status >= 400)
+                ? normalizedResponse.data?.message ||
+                  normalizedResponse.statusText ||
+                  "Execution Error"
+                : null;
+
+        try {
+            savedExecution = await createExecution({
+                userId: resolvedUserId,
+                projectId,
+                collectionId,
+                requestId,
+                environmentId: activeEnvironment?._id || null,
+                requestSnapshot,
+                response: {
+                    status: normalizedResponse.status,
+                    statusText: normalizedResponse.statusText,
+                    headers: normalizedResponse.headers,
+                    data: normalizedResponse.data,
+                    duration: normalizedResponse.duration,
+                    size: normalizedResponse.size,
+                },
+                success: isSuccess,
+                error: executionError,
+            });
+        } catch (saveErr) {
+            console.error(
+                "Failed to automatically save request execution history:",
+                saveErr
+            );
+        }
+    }
+
+    // 8. Return Response
     return {
-        status: response.status,
-        statusText: response.statusText,
-        headers: response.headers,
-        data: response.data,
-        duration,
+        status: normalizedResponse.status,
+        statusText: normalizedResponse.statusText,
+        headers: normalizedResponse.headers,
+        data: normalizedResponse.data,
+        duration: normalizedResponse.duration,
+        size: normalizedResponse.size,
+        executionId: savedExecution?._id || null,
         request: {
             method: request.method,
             url,
@@ -356,7 +447,6 @@ const executeRequest = async ({
                 !!(authentication.axiosAuth ||
                     request.auth?.type !== "none"),
         },
-        size
     };
 };
 
