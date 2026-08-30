@@ -114,9 +114,9 @@ export default function DashboardPage() {
       {/* ---------------------------------------------------- */}
       {/* MAIN CONTENT AREA                                    */}
       {/* ---------------------------------------------------- */}
-      <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 flex-1 flex flex-col overflow-hidden space-y-6">
+      <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 flex-1 flex flex-col overflow-hidden space-y-5">
         {/* Fixed Header Section: Welcome Banner & KPI Stats */}
-        <div className="shrink-0 space-y-6">
+        <div className="shrink-0 space-y-4">
           {/* Welcome Banner */}
           <div className="p-5 rounded-xl bg-gradient-to-r from-[#FF6D1F]/10 via-[#FAF3E1] dark:via-[#141416] to-[#FAF3E1] dark:to-[#101012] border border-[#E6D2A5] dark:border-[#2C2C2E] flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
             <div className="space-y-1">
