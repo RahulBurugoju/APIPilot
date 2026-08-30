@@ -29,7 +29,7 @@ const getEnvironmentById = asyncHandler(async(req,res)=>{
     .json(new ApiResponse(200, {environment},"Environment fetched successfully"));
 })
 
-const updatedEnvironment = asyncHandler(async(req,res)=>{
+const updateEnvironment = asyncHandler(async(req,res)=>{
     const {projectId, environmentId} = req.params;
     const { name, variables, isActive } = req.body;
 
