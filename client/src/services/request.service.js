@@ -61,6 +61,18 @@ const deleteRequest = async ({ projectId, collectionId, requestId }) => {
   return response.data;
 };
 
+const executeRequest = async (projectId, collectionId, requestId) => {
+  const pId = projectId?.projectId || projectId;
+  const cId = projectId?.collectionId || collectionId;
+  const rId = projectId?.requestId || requestId;
+
+  const response = await api.post(
+    `/projects/${pId}/collections/${cId}/requests/${rId}/execute`
+  );
+
+  return response.data;
+};
+
 export default {
   createRequest,
   getCollectionRequests,
@@ -68,4 +80,5 @@ export default {
   updateRequest,
   updateRequestAuth,
   deleteRequest,
+  executeRequest,
 };

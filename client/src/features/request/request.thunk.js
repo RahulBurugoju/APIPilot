@@ -104,6 +104,23 @@ const deleteRequest = createAsyncThunk(
   }
 );
 
+const executeRequest = createAsyncThunk(
+  "request/executeRequest",
+  async ({ projectId, collectionId, requestId }, thunkAPI) => {
+    try {
+      const response = await requestService.executeRequest({
+        projectId,
+        collectionId,
+        requestId,
+      });
+      return response;
+    } catch (error) {
+      const msg = error?.response?.data?.message || error?.message;
+      return thunkAPI.rejectWithValue(msg || "Failed to execute request");
+    }
+  }
+);
+
 export default {
   createRequest,
   getCollectionRequests,
@@ -111,4 +128,5 @@ export default {
   updateRequest,
   updateRequestAuth,
   deleteRequest,
+  executeRequest,
 };

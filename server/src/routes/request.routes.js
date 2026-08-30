@@ -28,4 +28,9 @@ router
   .patch(validate(updateRequestSchema), requestController.updateRequest)
   .delete(requestController.deleteRequest);
 
+router
+  .route("/:requestId/execute")
+  .all(verifyRequestBelongs)
+  .post(requestController.executeRequestController);
+
 export default router;

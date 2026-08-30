@@ -135,11 +135,16 @@ function RequestHeader({
           className="flex items-center gap-1.5 px-5 py-2 rounded-md bg-[#FF6D1F] hover:bg-[#E85B0F] active:scale-[0.99] text-white text-xs font-medium transition-all shadow-sm cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSending ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            <>
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <span>Sending...</span>
+            </>
           ) : (
-            <Send className="w-3.5 h-3.5" />
+            <>
+              <Send className="w-3.5 h-3.5" />
+              <span>Send</span>
+            </>
           )}
-          <span>Send</span>
         </button>
       </div>
 

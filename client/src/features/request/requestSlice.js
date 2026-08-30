@@ -6,6 +6,11 @@ const initialState = {
     currentRequest: null,
     loading: false,
     error: null,
+    execution: {
+  loading: false,
+  error: null,
+  response: null,
+},
 };
 
 const requestSlice = createSlice({
@@ -275,6 +280,21 @@ const requestSlice = createSlice({
             .addCase(requestThunk.deleteRequest.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
+            })
+
+            // Execute Request
+            .addCase(requestThunk.executeRequest.pending, (state) => {
+                state.execution.loading = true;
+                state.execution.error = null;
+            })
+            .addCase(requestThunk.executeRequest.fulfilled, (state, action) => {
+                state.execution.loading = false;
+                state.execution.error = null;
+                state.execution.response = action.payload?.data || action.payload;
+            })
+            .addCase(requestThunk.executeRequest.rejected, (state, action) => {
+                state.execution.loading = false;
+                state.execution.error = action.payload;
             });
     },
 });
@@ -288,6 +308,7 @@ export const {
     setCurrentRequestQueryParams,
     setCurrentRequestAuth,
     updateCurrentRequestAuthField,
+    clearExecutionResponse,
 } = requestSlice.actions;
 
 export default requestSlice.reducer;

@@ -7,6 +7,8 @@ import {
   Copy,
   Check,
   CheckCircle2,
+  AlertCircle,
+  AlertTriangle,
   Clock,
   Save,
   Loader2,
@@ -24,6 +26,7 @@ import ParamsEditor from "../requestBuilder/ParamsEditor.jsx";
 import HeadersEditor from "../requestBuilder/HeadersEditor.jsx";
 import BodyEditor from "../requestBuilder/BodyEditor.jsx";
 import AuthEditor from "../requestBuilder/AuthEditor.jsx";
+import ResponseViewer from "../response/ResponseViewer.jsx";
 import {
   buildUrlWithQueryParams,
   parseQueryParamsFromUrl,
@@ -97,35 +100,20 @@ function RequestCenter({ project, request, onNewRequest }) {
     dispatch(setCurrentRequestUrl(nextUrl));
   };
 
-  const [copied, setCopied] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
+  // Read real execution state from Redux
+  const execution = useSelector((state) => state.request.execution) || {
+    loading: false,
+    error: null,
+    response: null,
+  };
+  const isExecuting = execution.loading;
+  const executionResponse = execution.response;
+  const executionError = execution.error;
+
   const combinedUrl = combineBaseUrlAndPath(effectiveBaseUrl, url);
-
-  // Mock response payload for execution preview
-  const mockResponse = {
-    status: 200,
-    statusText: "OK",
-    time: "128 ms",
-    size: "1.04 KB",
-    data: {
-      success: true,
-      statusCode: 200,
-      message: `${selected?.name || "Request"} executed successfully`,
-      data: {
-        method: method,
-        endpoint: combinedUrl || url || "/api/v1",
-        authType: auth?.type || "none",
-      },
-    },
-  };
-
-  const handleCopyResponse = () => {
-    navigator.clipboard.writeText(JSON.stringify(mockResponse.data, null, 2));
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   // Compute dirty state by comparing current UI state with original selected request
   const isDirty = useMemo(() => {
@@ -198,6 +186,24 @@ function RequestCenter({ project, request, onNewRequest }) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleSave]);
 
+  // Execute request against server
+  const handleSend = async () => {
+    if (!selected?._id || !selected?.collection || isExecuting) return;
+
+    // Persist any unsaved builder changes first so execution uses the latest values
+    if (isDirty) {
+      await handleSave();
+    }
+
+    dispatch(
+      requestThunk.executeRequest({
+        projectId: project?._id,
+        collectionId: selected.collection,
+        requestId: selected._id,
+      })
+    );
+  };
+
   const handleCloseTab = () => {
     dispatch(clearCurrentRequest());
   };
@@ -240,15 +246,14 @@ function RequestCenter({ project, request, onNewRequest }) {
         <div className="flex items-center gap-1 overflow-x-auto">
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-t-md bg-[#FFFFFF] dark:bg-[#0B0B0D] border-t-2 border-t-[#FF6D1F] border-x border-[#E6D2A5] dark:border-[#1F1F23] text-xs font-medium text-[#222222] dark:text-[#F5F5F7] shadow-xs">
             <span
-              className={`text-[9px] font-bold font-mono ${
-                method === "GET"
-                  ? "text-[#059669] dark:text-[#00E599]"
-                  : method === "POST"
+              className={`text-[9px] font-bold font-mono ${method === "GET"
+                ? "text-[#059669] dark:text-[#00E599]"
+                : method === "POST"
                   ? "text-[#D97706] dark:text-[#FBBF24]"
                   : method === "DELETE"
-                  ? "text-[#DC2626] dark:text-[#F87171]"
-                  : "text-[#2563EB] dark:text-[#60A5FA]"
-              }`}
+                    ? "text-[#DC2626] dark:text-[#F87171]"
+                    : "text-[#2563EB] dark:text-[#60A5FA]"
+                }`}
             >
               {method}
             </span>
@@ -299,20 +304,18 @@ function RequestCenter({ project, request, onNewRequest }) {
             type="button"
             onClick={handleSave}
             disabled={isSaving}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs font-medium transition-all cursor-pointer disabled:opacity-50 ${
-              isDirty
-                ? "bg-[#FF6D1F] hover:bg-[#E85B0F] text-white border border-[#FF6D1F] shadow-xs"
-                : "bg-[#FFFFFF] dark:bg-[#1C1C1F] hover:bg-[#F5E7C6] dark:hover:bg-[#2C2C2E] border border-[#E6D2A5] dark:border-[#2C2C2E] text-[#222222] dark:text-[#F5F5F7]"
-            }`}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs font-medium transition-all cursor-pointer disabled:opacity-50 ${isDirty
+              ? "bg-[#FF6D1F] hover:bg-[#E85B0F] text-white border border-[#FF6D1F] shadow-xs"
+              : "bg-[#FFFFFF] dark:bg-[#1C1C1F] hover:bg-[#F5E7C6] dark:hover:bg-[#2C2C2E] border border-[#E6D2A5] dark:border-[#2C2C2E] text-[#222222] dark:text-[#F5F5F7]"
+              }`}
             title={isDirty ? "Save changes (Ctrl+S)" : "Request is saved"}
           >
             {isSaving ? (
               <Loader2 className="w-3 h-3 animate-spin" />
             ) : (
               <Save
-                className={`w-3 h-3 ${
-                  isDirty ? "text-white" : "text-[#5C5C5C] dark:text-[#A1A1A6]"
-                }`}
+                className={`w-3 h-3 ${isDirty ? "text-white" : "text-[#5C5C5C] dark:text-[#A1A1A6]"
+                  }`}
               />
             )}
             <span>Save</span>
@@ -331,8 +334,8 @@ function RequestCenter({ project, request, onNewRequest }) {
             setMethod(newMethod);
           }}
           onUrlChange={handleUrlChange}
-          onSend={handleSave}
-          isSending={isSaving}
+          onSend={handleSend}
+          isSending={isExecuting}
         />
 
         {/* Request Tabs & Body Editor */}
@@ -393,53 +396,13 @@ function RequestCenter({ project, request, onNewRequest }) {
           </div>
         </div>
 
-        {/* 3. Response Panel */}
-        <div className="rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] shadow-xs flex flex-col flex-1 min-h-[240px]">
-          {/* Response Status Bar */}
-          <div className="flex items-center justify-between px-4 py-2.5 border-b border-[#FAF3E1] dark:border-[#1F1F23]">
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-semibold text-[#222222] dark:text-[#F5F5F7]">
-                Response
-              </span>
-              <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-[#ECFDF5] dark:bg-[#062417] border border-[#A7F3D0] dark:border-[#104D30] text-[#059669] dark:text-[#00E599] text-[10px] font-mono font-bold">
-                <CheckCircle2 className="w-3 h-3" />
-                <span>200 OK</span>
-              </div>
-              <div className="flex items-center gap-1 text-[11px] text-[#8C8C8C] dark:text-[#6E6E73] font-mono">
-                <Clock className="w-3 h-3" />
-                <span>{mockResponse.time}</span>
-              </div>
-              <span className="text-[11px] text-[#8C8C8C] dark:text-[#6E6E73] font-mono">
-                {mockResponse.size}
-              </span>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleCopyResponse}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded hover:bg-[#FAF3E1] dark:hover:bg-[#1C1C1F] text-[11px] font-mono text-[#5C5C5C] dark:text-[#A1A1A6] hover:text-[#222222] dark:hover:text-[#F5F5F7] transition-colors cursor-pointer"
-            >
-              {copied ? (
-                <>
-                  <Check className="w-3 h-3 text-[#FF6D1F]" />
-                  <span>Copied</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-3 h-3" />
-                  <span>Copy</span>
-                </>
-              )}
-            </button>
-          </div>
-
-          {/* Formatted JSON Response Window */}
-          <div className="p-3 flex-1 overflow-auto bg-[#FAF3E1]/20 dark:bg-[#0B0B0D]/50 rounded-b-lg">
-            <pre className="text-xs font-mono text-[#222222] dark:text-[#F5F5F7] leading-relaxed overflow-x-auto p-2">
-              {JSON.stringify(mockResponse.data, null, 2)}
-            </pre>
-          </div>
-        </div>
+        {/* 3. Response Viewer Component */}
+        <ResponseViewer
+          response={executionResponse}
+          loading={isExecuting}
+          error={executionError}
+          endpoint={combinedUrl || url}
+        />
       </div>
     </div>
   );

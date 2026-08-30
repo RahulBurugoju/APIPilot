@@ -1,6 +1,7 @@
 import requestService from "../services/request.service.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { executeRequest } from "../services/request-execution.service.js";
 
 const createRequest = asyncHandler(async (req, res) => {
   const { projectId, collectionId } = req.params;
@@ -94,10 +95,26 @@ const deleteRequest = asyncHandler(async (req, res) => {
     );
 });
 
+const executeRequestController = asyncHandler(async (req, res) => {
+  const { projectId, collectionId, requestId } = req.params;
+
+  const result = await executeRequest({
+    projectId,
+    collectionId,
+    requestId,
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {result}, "Request executed successfully"));
+});
+
+
 export default {
   createRequest,
   getCollectionRequests,
   getRequest,
   updateRequest,
   deleteRequest,
+  executeRequestController,
 };
