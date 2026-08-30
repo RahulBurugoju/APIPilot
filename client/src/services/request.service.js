@@ -84,15 +84,17 @@ const deleteRequest = async ({ projectId, collectionId, requestId }) => {
   return response.data;
 };
 
-const executeRequest = async (projectId, collectionId, requestId) => {
+const executeRequest = async (projectId, collectionId, requestId, environmentId) => {
   const pId = extractId(projectId?.projectId || projectId);
   const cId = extractId(projectId?.collectionId || collectionId);
   const rId = extractId(projectId?.requestId || requestId);
+  const envId = projectId?.environmentId || environmentId;
 
-  const response = await api.post(
-    `/projects/${pId}/collections/${cId}/requests/${rId}/execute`
-  );
+  const url = `/projects/${pId}/collections/${cId}/requests/${rId}/execute${
+    envId ? `?environmentId=${envId}` : ""
+  }`;
 
+  const response = await api.post(url);
   return response.data;
 };
 

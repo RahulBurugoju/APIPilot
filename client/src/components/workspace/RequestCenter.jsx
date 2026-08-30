@@ -38,6 +38,11 @@ import {
 function RequestCenter({ project, request, onNewRequest }) {
   const dispatch = useDispatch();
   const reduxCurrentRequest = useSelector((state) => state.request.currentRequest);
+  const activeEnvironment = useSelector(
+    (state) =>
+      state.environment?.activeEnvironment ||
+      state.environments?.activeEnvironment
+  );
   const selected = request !== undefined ? request : reduxCurrentRequest;
 
   // Lookup target collection to retrieve its baseUrl
@@ -201,9 +206,39 @@ function RequestCenter({ project, request, onNewRequest }) {
         projectId: project?._id,
         collectionId: colId,
         requestId: selected._id,
+        environmentId: activeEnvironment?._id,
       })
     );
-  }, [selected, isExecuting, isDirty, handleSave, project, dispatch]);
+  }, [selected, isExecuting, isDirty, handleSave, project, activeEnvironment, dispatch]);
+
+  // Record execution in project history
+  useEffect(() => {
+    if (executionResponse && selected && project?._id) {
+      const historyKey = `apipilot_history_${project._id}`;
+      try {
+        const existing = JSON.parse(localStorage.getItem(historyKey) || "[]");
+        const entry = {
+          id: `${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+          requestId: selected._id,
+          name: selected.name || "Untitled Request",
+          method: method || selected.method || "GET",
+          url: combinedUrl || url || selected.url || "",
+          status: executionResponse.status,
+          statusText: executionResponse.statusText || "",
+          time: executionResponse.time || executionResponse.duration || 0,
+          size: executionResponse.size || 0,
+          timestamp: new Date().toISOString(),
+        };
+        const updated = [
+          entry,
+          ...existing.filter((item) => item.id !== entry.id),
+        ].slice(0, 50);
+        localStorage.setItem(historyKey, JSON.stringify(updated));
+      } catch (err) {
+        console.error("Failed to save execution history:", err);
+      }
+    }
+  }, [executionResponse, selected?._id, project?._id]);
 
   // Keyboard shortcut: Ctrl+S / Cmd+S to save, Ctrl+Enter / Cmd+Enter to send
   useEffect(() => {

@@ -9,13 +9,13 @@ import DeleteProjectModal from "../../components/projects/DeleteProjectModal";
 import CreateCollectionModal from "../../components/collections/CreateCollectionModal";
 import DeleteCollectionModal from "../../components/collections/DeleteCollectionModal";
 import CreateRequestModal from "../../components/requests/CreateRequestModal";
-import RequestList from "../../components/requests/RequestList";
 import requestThunk from "../../features/request/request.Thunk.js";
 import { setCurrentRequest, clearCurrentRequest } from "../../features/request/requestSlice.js";
-import CollectionList from "../../components/collections/CollectionList";
 import WorkspaceExplorer from "../../components/workspace/WorkspaceExplorer";
 import RequestCenter from "../../components/workspace/RequestCenter";
-import WorkspacePlaceholder from "../../components/workspace/WorkspacePlaceholder";
+import environmentThunks from "../../features/environment/environment.thunk.js";
+import EnvironmentSelector from "../../components/environments/EnvironmentSelector";
+import EnvironmentEditor from "../../components/environments/EnvironmentEditor";
 import {
   Folder,
   Clock,
@@ -56,7 +56,9 @@ function ProjectWorkspacePage() {
   const { requests, currentRequest } = useSelector((state) => state.request);
 
   const [copied, setCopied] = useState(false);
-  const [activeView, setActiveView] = useState("request"); // 'request' | 'overview' | 'collections' | 'environments' | 'history'
+  const [activeView, setActiveView] = useState("request"); // 'request' | 'environment'
+  const [sidebarTab, setSidebarTab] = useState("collections"); // 'collections' | 'environments' | 'history'
+  const [selectedEnvironment, setSelectedEnvironment] = useState(null);
   const [selectedCollection, setSelectedCollection] = useState(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
@@ -84,6 +86,7 @@ function ProjectWorkspacePage() {
     if (projectId) {
       dispatch(projectThunks.getProject({ projectId }));
       dispatch(collectionThunk.getProjectCollections({ projectId }));
+      dispatch(environmentThunks.getProjectEnvironments({ projectId }));
     }
   }, [projectId, dispatch]);
 
@@ -218,6 +221,12 @@ function ProjectWorkspacePage() {
 
           {/* Right: Quick actions, Theme Toggle & User Menu */}
           <div className="flex items-center gap-2.5">
+            {/* Environment Selector Dropdown (02.11.14) */}
+            <EnvironmentSelector
+              projectId={projectId}
+              onManageEnvironments={() => setSidebarTab("environments")}
+            />
+
             <button
               type="button"
               onClick={() => setIsEditOpen(true)}
@@ -325,6 +334,13 @@ function ProjectWorkspacePage() {
             setCollectionToDelete(col);
             setIsDeleteCollectionModalOpen(true);
           }}
+          sidebarTab={sidebarTab}
+          onSelectSidebarTab={setSidebarTab}
+          selectedEnvironment={selectedEnvironment}
+          onSelectEnvironment={(env) => {
+            setSelectedEnvironment(env);
+            setActiveView("environment");
+          }}
         />
 
         {/* Right: API Request Center or Auxiliary Views */}
@@ -344,127 +360,30 @@ function ProjectWorkspacePage() {
             />
           )}
 
-          {/* 2. Overview Canvas */}
-          {activeView === "overview" && (
-            <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 max-w-5xl">
-              {/* Project Title & Badges */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2.5">
-                  <h1 className="text-2xl font-bold text-[#222222] dark:text-[#F5F5F7] tracking-tight">
-                    {currentProject?.name || "My API"}
-                  </h1>
-                  <span className="px-2 py-0.5 rounded bg-[#FAF3E1] dark:bg-[#1C1C1F] border border-[#E6D2A5] dark:border-[#2C2C2E] text-[10px] font-mono font-semibold uppercase text-[#FF6D1F]">
-                    {currentProject?.projectType || "REST"}
-                  </span>
-                </div>
 
-                <p className="text-xs sm:text-sm text-[#5C5C5C] dark:text-[#A1A1A6]">
-                  {currentProject?.description ||
-                    "Backend API development workspace"}
-                </p>
 
-                {currentProject?.baseUrl && (
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#FAF3E1] dark:bg-[#1C1C1F] border border-[#E6D2A5] dark:border-[#2C2C2E] font-mono text-xs">
-                    <span className="text-[#8C8C8C] dark:text-[#6E6E73]">Base URL:</span>
-                    <span className="text-[#222222] dark:text-[#F5F5F7]">
-                      {currentProject.baseUrl}
-                    </span>
-                  </div>
-                )}
+          {/* 4. Environment Editor (When an environment is selected) */}
+          {activeView === "environment" && selectedEnvironment && (
+            <div className="flex-1 p-6 h-full overflow-hidden flex flex-col">
+              <div className="mb-2.5">
+                <button
+                  type="button"
+                  onClick={() => setActiveView("request")}
+                  className="inline-flex items-center gap-1 text-xs text-[#5C5C5C] dark:text-[#A1A1A6] hover:text-[#FF6D1F] transition-colors cursor-pointer"
+                >
+                  <span>← Back to Request Center</span>
+                </button>
               </div>
-
-              <hr className="border-[#E6D2A5] dark:border-[#1F1F23]" />
-
-              {/* Collections Summary List */}
-              <CollectionList
-                collections={collections || []}
-                loading={collectionsLoading}
-                onCreateClick={() => setIsCreateCollectionModalOpen(true)}
-              />
-
-              <hr className="border-[#E6D2A5] dark:border-[#1F1F23]" />
-
-              {/* Request List Component (Spec 02.8.15) */}
-              <RequestList
-                collectionName={
-                  selectedCollection?.name || "All Workspace Requests"
-                }
-                requests={
-                  selectedCollection
-                    ? (requests || []).filter(
-                        (r) =>
-                          r.collection &&
-                          String(r.collection) === String(selectedCollection._id)
-                      )
-                    : requests || []
-                }
-                selectedRequestId={currentRequest?._id}
-                onSelectRequest={handleSelectRequest}
-                onCreateRequestClick={() => {
-                  setTargetCollectionForRequest(
-                    selectedCollection || collections?.[0] || null
-                  );
-                  setIsCreateRequestModalOpen(true);
-                }}
-              />
-            </div>
-          )}
-
-          {/* 3. Collections View (Displays Collections and Request List) */}
-          {activeView === "collections" && (
-            <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 max-w-5xl">
-              <CollectionList
-                collections={collections || []}
-                loading={collectionsLoading}
-                onCreateClick={() => setIsCreateCollectionModalOpen(true)}
-              />
-
-              <hr className="border-[#E6D2A5] dark:border-[#1F1F23]" />
-
-              <RequestList
-                collectionName={
-                  selectedCollection?.name || "All Requests"
-                }
-                requests={
-                  selectedCollection
-                    ? (requests || []).filter(
-                        (r) =>
-                          r.collection &&
-                          String(r.collection) === String(selectedCollection._id)
-                      )
-                    : requests || []
-                }
-                selectedRequestId={currentRequest?._id}
-                onSelectRequest={handleSelectRequest}
-                onCreateRequestClick={() => {
-                  setTargetCollectionForRequest(
-                    selectedCollection || collections?.[0] || null
-                  );
-                  setIsCreateRequestModalOpen(true);
-                }}
-              />
-            </div>
-          )}
-
-          {/* 4. Environments Tab */}
-          {activeView === "environments" && (
-            <div className="flex-1 p-6">
-              <WorkspacePlaceholder
-                title="Environment Variables"
-                description="Manage global and scoped environment variables, secret vaults, and dynamic base URLs."
-                type="environments"
-              />
-            </div>
-          )}
-
-          {/* 5. History Tab */}
-          {activeView === "history" && (
-            <div className="flex-1 p-6">
-              <WorkspacePlaceholder
-                title="Request History"
-                description="Inspect past executed requests, timeline waterfall timings, and response headers."
-                type="default"
-              />
+              <div className="flex-1 min-h-0">
+                <EnvironmentEditor
+                  environment={selectedEnvironment}
+                  projectId={projectId}
+                  onDelete={() => {
+                    setSelectedEnvironment(null);
+                    setActiveView("request");
+                  }}
+                />
+              </div>
             </div>
           )}
         </main>

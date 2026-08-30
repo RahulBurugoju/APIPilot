@@ -9,6 +9,9 @@ import {
   combineBaseUrlAndPath,
   extractEndpointPath,
 } from "../../utils/urlUtils.js";
+import VariableIndicator, {
+  resolveVariablesInString,
+} from "../environments/VariableIndicator";
 
 const HTTP_METHODS = [
   "GET",
@@ -42,6 +45,11 @@ function RequestHeader({
 }) {
   const dispatch = useDispatch();
   const currentRequest = useSelector((state) => state.request.currentRequest);
+  const activeEnvironment = useSelector(
+    (state) =>
+      state.environment?.activeEnvironment ||
+      state.environments?.activeEnvironment
+  );
   const [copiedUrl, setCopiedUrl] = useState(false);
 
   const activeMethod = propMethod !== undefined ? propMethod : (currentRequest?.method || "GET");
@@ -81,10 +89,15 @@ function RequestHeader({
   };
 
   const combinedUrl = baseUrl ? combineBaseUrlAndPath(baseUrl, activeUrl) : activeUrl;
+  const resolvedUrl = resolveVariablesInString(
+    combinedUrl,
+    activeEnvironment?.variables
+  );
 
   const handleCopyCombined = () => {
-    if (!combinedUrl) return;
-    navigator.clipboard.writeText(combinedUrl);
+    const toCopy = resolvedUrl || combinedUrl;
+    if (!toCopy) return;
+    navigator.clipboard.writeText(toCopy);
     setCopiedUrl(true);
     setTimeout(() => setCopiedUrl(false), 2000);
   };
@@ -178,13 +191,24 @@ function RequestHeader({
         </button>
       </div>
 
-      {/* 4. Combined URL Preview pill */}
-      {baseUrl && (
+      {/* 4. Variable Indicator (Part F) */}
+      <VariableIndicator text={combinedUrl || activeUrl} className="px-1" />
+
+      {/* 5. Combined / Resolved URL Preview pill */}
+      {(baseUrl || resolvedUrl !== combinedUrl) && (
         <div className="flex items-center justify-between text-[11px] font-mono text-[#8C8C8C] dark:text-[#6E6E73] px-1">
           <div className="flex items-center gap-1.5 truncate">
-            <span className="text-[#8C8C8C] dark:text-[#6E6E73]">Target:</span>
-            <span className="text-[#FF6D1F] font-medium truncate">
-              {combinedUrl || `${baseUrl}/`}
+            <span className="text-[#8C8C8C] dark:text-[#6E6E73]">
+              {resolvedUrl !== combinedUrl ? "Resolved Target:" : "Target:"}
+            </span>
+            <span
+              className={`font-medium truncate ${
+                resolvedUrl !== combinedUrl
+                  ? "text-[#059669] dark:text-[#00E599]"
+                  : "text-[#FF6D1F]"
+              }`}
+            >
+              {resolvedUrl || combinedUrl || `${baseUrl}/`}
             </span>
           </div>
 

@@ -106,12 +106,13 @@ const deleteRequest = createAsyncThunk(
 
 const executeRequest = createAsyncThunk(
   "request/executeRequest",
-  async ({ projectId, collectionId, requestId }, thunkAPI) => {
+  async ({ projectId, collectionId, requestId, environmentId }, thunkAPI) => {
     try {
       const response = await requestService.executeRequest({
         projectId,
         collectionId,
         requestId,
+        environmentId,
       });
       return response;
     } catch (error) {

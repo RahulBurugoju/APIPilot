@@ -86,63 +86,7 @@ export function CollectionTree({
 
   return (
     <div className="flex flex-col h-full bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] rounded-lg shadow-xs overflow-hidden">
-      {/* Header Toolbar */}
-      <div className="p-3 border-b border-[#E6D2A5] dark:border-[#2C2C2E] bg-[#FAF3E1]/60 dark:bg-[#101012] space-y-2">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <FolderTree className="w-4 h-4 text-[#FF6D1F]" />
-            <h3 className="text-xs font-bold text-[#222222] dark:text-[#F5F5F7]">
-              Collection Hierarchy
-            </h3>
-            <span className="px-2 py-0.5 rounded-full bg-[#FAF3E1] dark:bg-[#1C1C1F] border border-[#E6D2A5] dark:border-[#2C2C2E] text-[10px] font-mono font-medium text-[#FF6D1F]">
-              {collections.length}
-            </span>
-          </div>
 
-          {/* Quick Actions */}
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={expandAll}
-              className="p-1 rounded hover:bg-[#F5E7C6] dark:hover:bg-[#1C1C1F] text-[#8C8C8C] dark:text-[#6E6E73] hover:text-[#222222] dark:hover:text-[#F5F5F7] transition-colors"
-              title="Expand All"
-            >
-              <ChevronsDown className="w-3.5 h-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={collapseAll}
-              className="p-1 rounded hover:bg-[#F5E7C6] dark:hover:bg-[#1C1C1F] text-[#8C8C8C] dark:text-[#6E6E73] hover:text-[#222222] dark:hover:text-[#F5F5F7] transition-colors"
-              title="Collapse All"
-            >
-              <ChevronsUp className="w-3.5 h-3.5" />
-            </button>
-
-            {onCreateRootCollection && (
-              <button
-                type="button"
-                onClick={onCreateRootCollection}
-                className="p-1.5 rounded-md bg-[#FF6D1F] text-white hover:bg-[#E85B0F] transition-colors shadow-xs cursor-pointer"
-                title="New Root Collection"
-              >
-                <Plus className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Search Bar */}
-        <div className="relative">
-          <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#8C8C8C] dark:text-[#6E6E73]" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search collections..."
-            className="w-full pl-8 pr-2.5 py-1.5 rounded-md bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] text-[11px] text-[#222222] dark:text-[#F5F5F7] placeholder-[#8C8C8C] dark:placeholder-[#6E6E73] focus:outline-none focus:border-[#FF6D1F] transition-colors"
-          />
-        </div>
-      </div>
 
       {/* Tree Content Area */}
       <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
