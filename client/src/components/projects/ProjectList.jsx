@@ -1,23 +1,34 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useSelector } from "react-redux";
 import ProjectCard from "./ProjectCard";
-import { FolderOpen, AlertCircle, Loader2 } from "lucide-react";
+import { FolderOpen, AlertCircle, Search } from "lucide-react";
 
-const ProjectList = () => {
+const ProjectList = ({ searchQuery = "" }) => {
   const { projects = [], loading, error } = useSelector((state) => state.project);
+
+  const filteredProjects = useMemo(() => {
+    if (!searchQuery.trim()) return projects;
+    const q = searchQuery.toLowerCase();
+    return projects.filter((p) => {
+      const nameMatch = p.name?.toLowerCase().includes(q);
+      const descMatch = p.description?.toLowerCase().includes(q);
+      const urlMatch = p.baseUrl?.toLowerCase().includes(q);
+      return nameMatch || descMatch || urlMatch;
+    });
+  }, [projects, searchQuery]);
 
   // Loading Skeleton State
   if (loading && (!projects || projects.length === 0)) {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="flex-1 flex flex-col min-h-0 space-y-3">
+        <div className="flex items-center justify-between shrink-0">
           <div className="h-5 w-32 bg-[#E6D2A5]/50 dark:bg-[#1C1C1F] rounded animate-pulse" />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="flex-1 overflow-y-auto flex flex-wrap gap-4 align-content-start pr-1">
           {[1, 2, 3].map((n) => (
             <div
               key={n}
-              className="p-5 rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] space-y-3 animate-pulse"
+              className="p-5 rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] space-y-3 animate-pulse flex-1 min-w-[260px] max-w-sm"
             >
               <div className="flex items-center gap-2.5">
                 <div className="w-7 h-7 rounded-md bg-[#FAF3E1] dark:bg-[#1C1C1F]" />
@@ -42,7 +53,7 @@ const ProjectList = () => {
     );
   }
 
-  // Empty State
+  // Empty Projects State
   if (!projects || projects.length === 0) {
     return (
       <div className="p-8 rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] text-center max-w-md mx-auto shadow-xs">
@@ -53,29 +64,46 @@ const ProjectList = () => {
           No projects yet
         </h3>
         <p className="text-xs text-[#5C5C5C] dark:text-[#A1A1A6]">
-          Create your first API project above to begin testing and inspecting endpoints.
+          Create your first API project to start building and testing endpoints.
         </p>
       </div>
     );
   }
 
-  // Projects Grid
+  // Empty Filter Results State
+  if (filteredProjects.length === 0) {
+    return (
+      <div className="p-8 rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] text-center space-y-2">
+        <Search className="w-6 h-6 mx-auto text-[#8C8C8C]" />
+        <p className="text-xs font-semibold text-[#222222] dark:text-[#F5F5F7]">
+          No matching projects
+        </p>
+        <p className="text-[11px] text-[#8C8C8C] dark:text-[#6E6E73]">
+          No projects match &ldquo;{searchQuery}&rdquo;. Try another search term.
+        </p>
+      </div>
+    );
+  }
+
+  // Independently Scrollable Flex Wrap Container
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="flex-1 flex flex-col min-h-0 space-y-3 overflow-hidden">
+      <div className="flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
           <h2 className="text-sm font-semibold text-[#222222] dark:text-[#F5F5F7]">
-            Your Collections
+            Your Workspaces
           </h2>
           <span className="px-2 py-0.5 rounded-full bg-[#FAF3E1] dark:bg-[#1C1C1F] border border-[#E6D2A5] dark:border-[#2C2C2E] text-[10px] font-mono text-[#5C5C5C] dark:text-[#A1A1A6]">
-            {projects.length} {projects.length === 1 ? "project" : "projects"}
+            {filteredProjects.length} {filteredProjects.length === 1 ? "project" : "projects"}
           </span>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {projects.map((project) => (
-          <ProjectCard key={project._id || project.id} project={project} />
+      <div className="flex-1 overflow-y-auto flex flex-wrap gap-4 align-content-start pr-1">
+        {filteredProjects.map((project) => (
+          <div key={project._id || project.id} className="flex-1 min-w-[260px] max-w-sm">
+            <ProjectCard project={project} />
+          </div>
         ))}
       </div>
     </div>
