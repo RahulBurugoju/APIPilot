@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import requestThunk from "./request.Thunk.js";
+import requestThunk from "./request.thunk.js";
 
 const initialState = {
     requests: [],

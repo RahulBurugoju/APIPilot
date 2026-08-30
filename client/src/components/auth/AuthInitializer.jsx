@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { initializeAuth } from "../../features/auth/auth.thunk";
+import { initializeAuth } from "../../features/auth/auth.thunk.js";
 
 function AuthInitializer({ children }) {
   const dispatch = useDispatch();

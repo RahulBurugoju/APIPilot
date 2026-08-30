@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import projectThunks from "../../features/project/project.thunk";
+import projectThunks from "../../features/project/project.thunk.js";
 import { clearProjectError } from "../../features/project/projectSlice";
 import { Loader2, AlertCircle, Check } from "lucide-react";
 

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import projectThunks from "../../features/project/project.thunk";
+import projectThunks from "../../features/project/project.thunk.js";
 import { resetCurrentProject, clearProjectError } from "../../features/project/projectSlice";
 import { FolderPlus, AlertCircle, Loader2 } from "lucide-react";
 

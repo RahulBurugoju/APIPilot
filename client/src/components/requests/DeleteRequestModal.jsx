@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
-import requestThunk from "../../features/request/request.Thunk.js";
+import requestThunk from "../../features/request/request.thunk.js";
 import { Trash2, Loader2, X } from "lucide-react";
 
 export default function DeleteRequestModal({

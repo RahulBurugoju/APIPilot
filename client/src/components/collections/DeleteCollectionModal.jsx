@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
-import collectionThunk from "../../features/collection/collection.thunk";
+import collectionThunk from "../../features/collection/collection.thunk.js";
 import { Trash2, Loader2, X } from "lucide-react";
 
 function DeleteCollectionModal({ isOpen, onClose, projectId, collection, onDeleted }) {

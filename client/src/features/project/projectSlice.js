@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import projectThunks from "./project.thunk";
+import projectThunks from "./project.thunk.js";
 
 const initialState = {
   projects: [],

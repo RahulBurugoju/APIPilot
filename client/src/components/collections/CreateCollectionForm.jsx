@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import collectionThunk from "../../features/collection/collection.thunk";
+import collectionThunk from "../../features/collection/collection.thunk.js";
 import { Loader2, AlertCircle, FolderPlus } from "lucide-react";
 
 function CreateCollectionForm({

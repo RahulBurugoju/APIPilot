@@ -12,7 +12,7 @@ import DeleteCollectionModal from "../../components/collections/DeleteCollection
 import CreateRequestModal from "../../components/requests/CreateRequestModal.jsx";
 import EditRequestModal from "../../components/requests/EditRequestModal.jsx";
 import DeleteRequestModal from "../../components/requests/DeleteRequestModal.jsx";
-import requestThunk from "../../features/request/request.Thunk.js";
+import requestThunk from "../../features/request/request.thunk.js";
 import { setCurrentRequest, clearCurrentRequest } from "../../features/request/requestSlice.js";
 import WorkspaceExplorer from "../../components/workspace/WorkspaceExplorer.jsx";
 import RequestCenter from "../../components/workspace/RequestCenter.jsx";
@@ -42,7 +42,7 @@ import {
   ArrowUpRight,
   Send,
 } from "lucide-react";
-import { logoutUser } from "../../features/auth/auth.thunk";
+import { logoutUser } from "../../features/auth/auth.thunk.js";
 
 function ProjectWorkspacePage() {
   const { projectId } = useParams();

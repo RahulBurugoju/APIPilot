@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import requestThunk from "../../features/request/request.Thunk.js";
+import requestThunk from "../../features/request/request.thunk.js";
 import Modal from "../common/Modal";
 import { Edit2, Loader2, Send } from "lucide-react";
 

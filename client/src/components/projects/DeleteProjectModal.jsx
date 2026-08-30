@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import projectThunks from "../../features/project/project.thunk";
+import projectThunks from "../../features/project/project.thunk.js";
 import { Trash2, Loader2, X } from "lucide-react";
 
 function DeleteProjectModal({ isOpen, onClose, project, onDeleted }) {

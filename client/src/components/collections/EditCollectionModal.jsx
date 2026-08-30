@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import collectionThunk from "../../features/collection/collection.thunk";
+import collectionThunk from "../../features/collection/collection.thunk.js";
 import Modal from "../common/Modal";
 import { Edit2, Loader2, Folder } from "lucide-react";
 

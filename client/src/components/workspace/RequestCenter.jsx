@@ -20,7 +20,7 @@ import {
   setCurrentRequestAuth,
   clearExecutionResponse,
 } from "../../features/request/requestSlice.js";
-import requestThunk from "../../features/request/request.Thunk.js";
+import requestThunk from "../../features/request/request.thunk.js";
 import RequestHeader from "../requestBuilder/RequestHeader.jsx";
 import RequestTabs from "../requestBuilder/RequestTabs.jsx";
 import ParamsEditor from "../requestBuilder/ParamsEditor.jsx";

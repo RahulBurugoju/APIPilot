@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import requestThunk from "../../features/request/request.Thunk.js";
+import requestThunk from "../../features/request/request.thunk.js";
 import { Loader2, Plus, AlertCircle, Globe, Tag } from "lucide-react";
 
 function CreateRequestForm({ projectId, collectionId, collectionName, onSuccess, onCancel }) {
