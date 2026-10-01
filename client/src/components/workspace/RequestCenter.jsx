@@ -418,7 +418,7 @@ function RequestCenter({ project, request, onNewRequest }) {
       </div>
 
       {/* 2. Main Request & Response Workspace */}
-      <div className="flex-1 flex flex-col min-h-[180px] overflow-hidden p-3 sm:p-4 gap-3">
+      <div className="flex-1 flex flex-col min-h-[180px] max-h-[70vh] overflow-hidden p-3 sm:p-4 gap-3">
         {/* Pinned Request Header Bar (Method, URL, Send) */}
         <div className="shrink-0">
           <RequestHeader
@@ -443,7 +443,7 @@ function RequestCenter({ project, request, onNewRequest }) {
           }`}
         >
           {/* Request Configuration Card */}
-          <div className="flex-1 max-h-[70vh] min-w-0 rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] shadow-xs flex flex-col overflow-auto">
+          <div className="flex-1 min-h-[180px] max-h-[70vh] min-w-0 rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] shadow-xs flex flex-col overflow-auto">
             {/* Sub Tab Bar */}
             <div className="shrink-0">
               <RequestTabs
