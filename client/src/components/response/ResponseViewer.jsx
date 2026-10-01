@@ -212,7 +212,7 @@ function ResponseViewer({
       )}
 
       {/* Response Content Area */}
-      <div className="flex-1 overflow-auto bg-[#FAF3E1]/15 dark:bg-[#0B0B0D]/70 flex flex-col">
+      <div className="flex-1 min-h-0 overflow-auto bg-[#FAF3E1]/15 dark:bg-[#0B0B0D]/70 flex flex-col">
         {loading && !res ? (
           /* First-time Loading State (no previous response) */
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">

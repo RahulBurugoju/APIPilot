@@ -443,7 +443,7 @@ function RequestCenter({ project, request, onNewRequest }) {
           }`}
         >
           {/* Request Configuration Card */}
-          <div className="flex-1 min-h-[160px] min-w-0 rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] shadow-xs flex flex-col overflow-auto">
+          <div className="flex-1 min-h-[160px] min-w-0 rounded-lg bg-[#FFFFFF] dark:bg-[#141416] border border-[#E6D2A5] dark:border-[#2C2C2E] shadow-xs flex flex-col overflow-hidden">
             {/* Sub Tab Bar */}
             <div className="shrink-0">
               <RequestTabs

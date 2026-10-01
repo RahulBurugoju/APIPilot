@@ -90,7 +90,7 @@ export default function ResponseBody({
         : "Text";
 
   return (
-    <div className="flex flex-col flex-1 overflow-hidden">
+    <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
       {/* View Mode Toggle + Content Type Badge */}
       <div className="flex items-center gap-2 px-3 py-1.5 border-b border-[#FAF3E1] dark:border-[#1F1F23] bg-[#FAF3E1]/30 dark:bg-[#121214] shrink-0">
         {/* Pretty / Raw toggle — only meaningful for JSON */}
@@ -137,7 +137,7 @@ export default function ResponseBody({
       </div>
 
       {/* Body Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 min-h-0 overflow-auto">
         {filteredLines === null ? (
           <div className="p-4 text-center">
             <p className="text-xs font-mono text-[#8C8C8C] dark:text-[#6E6E73]">
